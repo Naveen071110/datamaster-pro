@@ -7,7 +7,8 @@ interface ScrollVideoProps {
 export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+  const [frames, setFrames] = useState<ImageBitmap[]>([])
 
   useEffect(() => {
     const video = videoRef.current
@@ -18,6 +19,8 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     let animationFrameId: number
     let targetProgress = 0
     let smoothedProgress = 0
+    let isExtracting = false
+    const frameCache: ImageBitmap[] = []
 
     const updateCanvasSize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -35,66 +38,127 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     }
     window.addEventListener("scroll", handleScroll, { passive: true })
 
-    const render = () => {
-      // Lerp smoothed progress
-      smoothedProgress += (targetProgress - smoothedProgress) * 0.12
+    // Extract 90 frames for 60fps instant scrub
+    const extractFrames = async () => {
+      if (isExtracting || !video.duration) return
+      isExtracting = true
 
-      if (video.duration && !isNaN(video.duration)) {
-        const targetTime = smoothedProgress * (video.duration - 0.05)
-        if (Math.abs(video.currentTime - targetTime) > 0.03) {
-          video.currentTime = targetTime
+      const totalFrames = Math.min(90, Math.floor(video.duration * 15))
+      const offCanvas = document.createElement("canvas")
+      const offCtx = offCanvas.getContext("2d")
+
+      // Downscale width to 960px max for performance
+      const scale = Math.min(1, 960 / (video.videoWidth || 1920))
+      const targetW = Math.round((video.videoWidth || 1920) * scale)
+      const targetH = Math.round((video.videoHeight || 1080) * scale)
+      offCanvas.width = targetW
+      offCanvas.height = targetH
+
+      for (let i = 0; i < totalFrames; i++) {
+        const time = (i / (totalFrames - 1)) * (video.duration - 0.05)
+        video.currentTime = time
+        await new Promise((res) => {
+          const onSeek = () => {
+            video.removeEventListener("seeked", onSeek)
+            res(true)
+          }
+          video.addEventListener("seeked", onSeek)
+        })
+
+        if (offCtx) {
+          offCtx.drawImage(video, 0, 0, targetW, targetH)
+          try {
+            const bitmap = await createImageBitmap(offCanvas)
+            frameCache.push(bitmap)
+          } catch {
+            // fallback
+          }
         }
       }
 
-      if (ctx && video.readyState >= 2) {
+      if (frameCache.length > 0) {
+        setFrames(frameCache)
+      }
+    }
+
+    const render = () => {
+      // Smooth lerp factor 0.08 for fluid scrolling
+      smoothedProgress += (targetProgress - smoothedProgress) * 0.08
+
+      if (ctx) {
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
         const canvasWidth = window.innerWidth * dpr
         const canvasHeight = window.innerHeight * dpr
 
-        // Object-cover math
-        const vWidth = video.videoWidth || 1920
-        const vHeight = video.videoHeight || 1080
-        const vAspect = vWidth / vHeight
-        const cAspect = canvasWidth / canvasHeight
+        let source: CanvasImageSource | null = null
 
-        let drawW = canvasWidth
-        let drawH = canvasHeight
-        let offsetX = 0
-        let offsetY = 0
-
-        if (cAspect > vAspect) {
-          drawH = canvasWidth / vAspect
-          offsetY = (canvasHeight - drawH) / 2
-        } else {
-          drawW = canvasHeight * vAspect
-          offsetX = (canvasWidth - drawW) / 2
+        if (frameCache.length > 0) {
+          const idx = Math.min(
+            Math.floor(smoothedProgress * frameCache.length),
+            frameCache.length - 1
+          )
+          source = frameCache[idx]
+        } else if (video.readyState >= 2) {
+          const targetTime = smoothedProgress * (video.duration - 0.05)
+          if (Math.abs(video.currentTime - targetTime) > 0.04) {
+            video.currentTime = targetTime
+          }
+          source = video
         }
 
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-        ctx.drawImage(video, offsetX, offsetY, drawW, drawH)
+        if (source) {
+          const vWidth = (source as HTMLVideoElement).videoWidth || (source as ImageBitmap).width || 1920
+          const vHeight = (source as HTMLVideoElement).videoHeight || (source as ImageBitmap).height || 1080
+          const vAspect = vWidth / vHeight
+          const cAspect = canvasWidth / canvasHeight
+
+          let drawW = canvasWidth
+          let drawH = canvasHeight
+          let offsetX = 0
+          let offsetY = 0
+
+          if (cAspect > vAspect) {
+            drawH = canvasWidth / vAspect
+            offsetY = (canvasHeight - drawH) / 2
+          } else {
+            drawW = canvasHeight * vAspect
+            offsetX = (canvasWidth - drawW) / 2
+          }
+
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+          ctx.drawImage(source, offsetX, offsetY, drawW, drawH)
+        }
       }
 
       animationFrameId = requestAnimationFrame(render)
     }
 
     const onLoadedData = () => {
-      setIsLoaded(true)
+      setIsReady(true)
       render()
+      setTimeout(() => {
+        extractFrames()
+      }, 300)
     }
 
-    video.addEventListener("loadeddata", onLoadedData)
+    if (video.readyState >= 2) {
+      onLoadedData()
+    } else {
+      video.addEventListener("loadeddata", onLoadedData)
+    }
 
     return () => {
       window.removeEventListener("resize", updateCanvasSize)
       window.removeEventListener("scroll", handleScroll)
       video.removeEventListener("loadeddata", onLoadedData)
       cancelAnimationFrame(animationFrameId)
+      frameCache.forEach((bm) => bm.close?.())
     }
   }, [videoUrl])
 
   return (
     <div className="fixed inset-0 z-0 bg-[#0a0a0a] overflow-hidden pointer-events-none">
-      {/* Video Element */}
+      {/* Offscreen Video Source */}
       <video
         ref={videoRef}
         src={videoUrl}
@@ -103,14 +167,16 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
         preload="auto"
         className="hidden"
       />
-      {/* Scrubbed Canvas */}
+
+      {/* Render Canvas */}
       <canvas
         ref={canvasRef}
         className={`w-full h-full object-cover transition-opacity duration-700 ${
-          isLoaded ? "opacity-100" : "opacity-0"
+          isReady ? "opacity-100" : "opacity-0"
         }`}
       />
-      {/* Grain / Vignette overlay */}
+
+      {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/60 pointer-events-none" />
     </div>
   )
