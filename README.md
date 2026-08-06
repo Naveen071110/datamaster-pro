@@ -16,6 +16,19 @@
 
 ---
 
+## 📌 Recommended GitHub Repository 'About' Setup
+
+To set up your GitHub repository homepage metadata:
+
+1. Go to [github.com/Naveen071110/datamaster-pro](https://github.com/Naveen071110/datamaster-pro).
+2. Click the ⚙️ **gear icon** next to **About** on the top right.
+3. Paste the following details:
+   - **Description**: `⚡ Privacy-first, 100% in-browser developer utility suite for Data Engineers & Analysts. Features SQLite WASM CSV sandbox, multi-dialect DDL generator, data profiler, schema diff, SQL beautifier, snippet vault, and visual ETL DAG builder.`
+   - **Website**: `https://datamaster-pro.onrender.com`
+   - **Topics**: `data-engineering`, `data-analyst`, `sqlite-wasm`, `ddl-generator`, `sql-formatter`, `data-profiler`, `schema-diff`, `micro-saas`, `privacy-first`, `react`, `typescript`, `vite`, `tailwind-css`
+
+---
+
 ## 🚀 The 7 Core Utilities
 
 ```
