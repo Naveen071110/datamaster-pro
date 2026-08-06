@@ -8,14 +8,18 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isReady, setIsReady] = useState(false)
-  const [frames, setFrames] = useState<ImageBitmap[]>([])
 
   useEffect(() => {
     const video = videoRef.current
     const canvas = canvasRef.current
     if (!video || !canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: false })
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = "high"
+    }
+
     let animationFrameId: number
     let targetProgress = 0
     let smoothedProgress = 0
@@ -38,17 +42,17 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     }
     window.addEventListener("scroll", handleScroll, { passive: true })
 
-    // Extract 90 frames for 60fps instant scrub
-    const extractFrames = async () => {
+    // Progressive Frame Extraction (Up to 120 frames for ultra-smooth 60Hz - 144Hz displays)
+    const extractFramesProgressively = async () => {
       if (isExtracting || !video.duration) return
       isExtracting = true
 
-      const totalFrames = Math.min(90, Math.floor(video.duration * 15))
+      const totalFrames = Math.min(120, Math.floor(video.duration * 20))
       const offCanvas = document.createElement("canvas")
       const offCtx = offCanvas.getContext("2d")
 
-      // Downscale width to 960px max for performance
-      const scale = Math.min(1, 960 / (video.videoWidth || 1920))
+      // High-res 1280px extraction width for crisp visual quality
+      const scale = Math.min(1, 1280 / (video.videoWidth || 1920))
       const targetW = Math.round((video.videoWidth || 1920) * scale)
       const targetH = Math.round((video.videoHeight || 1080) * scale)
       offCanvas.width = targetW
@@ -75,15 +79,13 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
           }
         }
       }
-
-      if (frameCache.length > 0) {
-        setFrames(frameCache)
-      }
     }
 
     const render = () => {
-      // Smooth lerp factor 0.08 for fluid scrolling
-      smoothedProgress += (targetProgress - smoothedProgress) * 0.08
+      // Adaptive Dynamic Lerp Engine: Instant tracking on fast scroll, ultra-silky on slow scroll
+      const delta = targetProgress - smoothedProgress
+      const adaptiveLerp = Math.min(0.35, 0.16 + Math.abs(delta) * 0.4)
+      smoothedProgress += delta * adaptiveLerp
 
       if (ctx) {
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -100,7 +102,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
           source = frameCache[idx]
         } else if (video.readyState >= 2) {
           const targetTime = smoothedProgress * (video.duration - 0.05)
-          if (Math.abs(video.currentTime - targetTime) > 0.04) {
+          if (Math.abs(video.currentTime - targetTime) > 0.03) {
             video.currentTime = targetTime
           }
           source = video
@@ -125,7 +127,6 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
             offsetX = (canvasWidth - drawW) / 2
           }
 
-          ctx.clearRect(0, 0, canvasWidth, canvasHeight)
           ctx.drawImage(source, offsetX, offsetY, drawW, drawH)
         }
       }
@@ -136,9 +137,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     const onLoadedData = () => {
       setIsReady(true)
       render()
-      setTimeout(() => {
-        extractFrames()
-      }, 300)
+      extractFramesProgressively()
     }
 
     if (video.readyState >= 2) {
@@ -176,7 +175,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
         }`}
       />
 
-      {/* Gradient Overlay */}
+      {/* Subtle Vignette Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/60 pointer-events-none" />
     </div>
   )
