@@ -208,7 +208,10 @@ export async function getDatabase(): Promise<any> {
   initPromise = (async () => {
     try {
       const initSqlJs = await import('sql.js')
-      SQL = await initSqlJs()
+      const initFn = initSqlJs.default || initSqlJs
+      SQL = await initFn({
+        locateFile: (file: string) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.11.0/${file}`
+      })
       db = new SQL.Database()
 
       // Execute DDL

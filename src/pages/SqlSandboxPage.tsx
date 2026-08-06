@@ -243,7 +243,7 @@ export default function SqlSandboxPage() {
             </div>
 
             {/* Status bar */}
-            <div className="flex items-center justify-between px-4 py-1 text-xs text-muted-foreground border-y border-border bg-muted/10">
+            <div className="flex items-center justify-between px-4 py-1.5 text-xs text-muted-foreground border-y border-border bg-muted/10">
               <div className="flex items-center gap-3">
                 {activeTab.isExecuting && (
                   <span className="flex items-center gap-1 text-yellow-400">
@@ -261,7 +261,52 @@ export default function SqlSandboxPage() {
                   <span className="text-destructive">Error</span>
                 )}
               </div>
-              <span className="text-[10px]">Cmd+Enter to run</span>
+
+              {activeTab.result && activeTab.result.rows.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] px-2 py-0"
+                    onClick={() => {
+                      if (!activeTab.result) return
+                      const cols = activeTab.result.columns
+                      const csvRows = [cols.join(",")]
+                      activeTab.result.rows.forEach((r) => {
+                        const vals = cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`)
+                        csvRows.push(vals.join(","))
+                      })
+                      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement("a")
+                      a.href = url
+                      a.download = "query_results.csv"
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    }}
+                  >
+                    Export CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] px-2 py-0"
+                    onClick={() => {
+                      if (!activeTab.result) return
+                      const jsonStr = JSON.stringify(activeTab.result.rows, null, 2)
+                      const blob = new Blob([jsonStr], { type: "application/json" })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement("a")
+                      a.href = url
+                      a.download = "query_results.json"
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    }}
+                  >
+                    Export JSON
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Results */}
