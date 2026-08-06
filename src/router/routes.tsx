@@ -3,6 +3,7 @@ import { createBrowserRouter, type RouteObject } from "react-router-dom"
 import AppShell from "@/layouts/AppShell"
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton"
 
+const LandingPage = lazy(() => import("@/pages/LandingPage"))
 const HomePage = lazy(() => import("@/pages/HomePage"))
 const SqlSandboxPage = lazy(() => import("@/pages/SqlSandboxPage"))
 const DdlGeneratorPage = lazy(() => import("@/pages/DdlGeneratorPage"))
@@ -37,9 +38,13 @@ function NotFound() {
 const routes: RouteObject[] = [
   {
     path: "/",
+    element: <LazyPage Component={LandingPage} variant="full" />,
+  },
+  {
+    path: "/",
     element: <AppShell />,
     children: [
-      { index: true, element: <LazyPage Component={HomePage} variant="home" /> },
+      { path: "app", element: <LazyPage Component={HomePage} variant="home" /> },
       { path: "sql-sandbox", element: <LazyPage Component={SqlSandboxPage} variant="editor" /> },
       { path: "ddl-generator", element: <LazyPage Component={DdlGeneratorPage} variant="editor" /> },
       { path: "data-profiler", element: <LazyPage Component={DataProfilerPage} variant="full" /> },

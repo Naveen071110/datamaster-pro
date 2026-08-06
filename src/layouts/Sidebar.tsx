@@ -39,7 +39,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: "/", label: "Dashboard Overview", icon: "LayoutDashboard", section: "overview", order: 0 },
+  { path: "/app", label: "Dashboard Overview", icon: "LayoutDashboard", section: "overview", order: 0 },
   { path: "/sql-sandbox", label: "CSV & SQL Sandbox", icon: "Terminal", section: "utilities", order: 1 },
   { path: "/ddl-generator", label: "CSV to DDL Generator", icon: "FileCode", section: "utilities", order: 2 },
   { path: "/data-profiler", label: "Data Profiler", icon: "BarChart3", section: "utilities", order: 3 },
