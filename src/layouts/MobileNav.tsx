@@ -2,47 +2,52 @@ import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard,
   Terminal,
-  BookOpen,
-  HelpCircle,
-  GitBranch,
-  Wrench,
+  FileCode,
   BarChart3,
-  Table2,
+  Menu,
 } from "lucide-react"
 import { cn } from "@/shared/utils/cn"
+import { useAppStore } from "@/stores"
 
 const items = [
-  { path: "/", icon: LayoutDashboard, label: "Home" },
-  { path: "/sql-sandbox", icon: Terminal, label: "SQL" },
-  { path: "/code-library", icon: BookOpen, label: "Code" },
-  { path: "/qa", icon: HelpCircle, label: "Q&A" },
-  { path: "/etl-workflows", icon: GitBranch, label: "ETL" },
-  { path: "/troubleshooting", icon: Wrench, label: "Fix" },
-  { path: "/performance-analyzer", icon: BarChart3, label: "Perf" },
-  { path: "/schema-validator", icon: Table2, label: "Schema" },
+  { path: "/app", icon: LayoutDashboard, label: "Overview" },
+  { path: "/sql-sandbox", icon: Terminal, label: "SQL WASM" },
+  { path: "/ddl-generator", icon: FileCode, label: "DDL Gen" },
+  { path: "/data-profiler", icon: BarChart3, label: "Profiler" },
 ]
 
 export function MobileNav() {
+  const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
+
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card">
-      <div className="flex overflow-x-auto">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-[#0d0d0d]/95 backdrop-blur-md px-2 py-1">
+      <div className="flex items-center justify-around">
         {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center gap-0.5 px-2 py-1.5 text-[10px] min-w-[48px] flex-1 transition-colors",
+                "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200",
                 isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-white bg-white/15 border border-white/15"
+                  : "text-white/60 hover:text-white hover:bg-white/5"
               )
             }
           >
             <item.icon className="h-4 w-4" />
-            <span className="truncate max-w-full">{item.label}</span>
+            <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
+
+        {/* More button to open drawer */}
+        <button
+          onClick={() => setMobileNavOpen(true)}
+          className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
+        >
+          <Menu className="h-4 w-4 text-white" />
+          <span>More</span>
+        </button>
       </div>
     </nav>
   )

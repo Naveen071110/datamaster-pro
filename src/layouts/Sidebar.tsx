@@ -10,13 +10,11 @@ import {
   GitBranch,
   ChevronDown,
   ChevronRight,
-  Bookmark,
-  ShieldCheck,
+  X,
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/shared/utils/cn"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
-import { Separator } from "@/shared/components/ui/separator"
 import { useAppStore } from "@/stores"
 
 const iconMap: Record<string, React.ElementType> = {
@@ -56,10 +54,12 @@ const sectionLabels: Record<string, string> = {
 
 export function Sidebar() {
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
-  const bookmarks = useAppStore((s) => s.bookmarks)
+  const mobileNavOpen = useAppStore((s) => s.mobileNavOpen)
+  const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    "getting-started": true,
-    tools: true,
+    overview: true,
+    utilities: true,
   })
 
   const toggleSection = (section: string) => {
@@ -75,35 +75,33 @@ export function Sidebar() {
     return acc
   }, {})
 
-  return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-30 h-full border-r border-white/10 bg-[#0d0d0d] text-white transition-all duration-300 flex flex-col",
-        sidebarOpen ? "w-60" : "w-0 overflow-hidden md:w-16"
-      )}
-    >
-      <div className="flex items-center h-14 px-4 border-b border-white/10">
-        <div className={cn("flex items-center gap-2", !sidebarOpen && "md:justify-center md:w-full")}>
+  const renderNavContent = (isMobile: boolean) => (
+    <>
+      <div className="flex items-center justify-between h-14 px-4 border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded bg-white flex items-center justify-center shrink-0">
             <Terminal className="h-4 w-4 text-black" />
           </div>
-          {sidebarOpen && (
-            <span className="font-bold text-sm text-white tracking-tight truncate">
-              DataMaster Pro
-            </span>
-          )}
+          <span className="font-bold text-sm text-white tracking-tight truncate">
+            DataMaster Pro
+          </span>
         </div>
+        {isMobile && (
+          <button
+            onClick={() => setMobileNavOpen(false)}
+            className="p-1 rounded text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <ScrollArea className="flex-1 px-2 py-3">
+      <ScrollArea className="flex-1 px-3 py-3">
         {Object.entries(sections).map(([sectionKey, items]) => (
           <div key={sectionKey} className="mb-4">
             <button
               onClick={() => toggleSection(sectionKey)}
-              className={cn(
-                "flex items-center gap-1 w-full px-2 py-1.5 font-mono text-[10px] font-semibold text-white/50 uppercase tracking-[0.15em] hover:text-white transition-colors",
-                !sidebarOpen && "md:sr-only"
-              )}
+              className="flex items-center gap-1 w-full px-2 py-1.5 font-mono text-[10px] font-semibold text-white/50 uppercase tracking-[0.15em] hover:text-white transition-colors"
             >
               {expandedSections[sectionKey] ? (
                 <ChevronDown className="h-3 w-3" />
@@ -112,8 +110,8 @@ export function Sidebar() {
               )}
               {sectionLabels[sectionKey]}
             </button>
-            {(expandedSections[sectionKey] || !sidebarOpen) && (
-              <div className={cn("space-y-0.5 mt-1", !sidebarOpen && "md:space-y-2 md:mt-2")}>
+            {expandedSections[sectionKey] && (
+              <div className="space-y-0.5 mt-1">
                 {items
                   .sort((a, b) => a.order - b.order)
                   .map((item) => {
@@ -122,18 +120,20 @@ export function Sidebar() {
                       <NavLink
                         key={item.path}
                         to={item.path}
+                        onClick={() => {
+                          if (isMobile) setMobileNavOpen(false)
+                        }}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200",
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
                             isActive
                               ? "bg-white/15 text-white font-medium border border-white/15 shadow-sm"
-                              : "text-white/70 hover:text-white hover:bg-white/10",
-                            !sidebarOpen && "md:justify-center md:px-2"
+                              : "text-white/70 hover:text-white hover:bg-white/10"
                           )
                         }
                       >
-                        {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                        {sidebarOpen && <span className="truncate">{item.label}</span>}
+                        {Icon && <Icon className="h-4 w-4 shrink-0 text-white/90" />}
+                        <span className="truncate">{item.label}</span>
                       </NavLink>
                     )
                   })}
@@ -141,43 +141,39 @@ export function Sidebar() {
             )}
           </div>
         ))}
-
-        {sidebarOpen && bookmarks.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <div className="px-2 py-1.5">
-              <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                <Bookmark className="h-3 w-3" />
-                Bookmarks ({bookmarks.length})
-              </div>
-              <div className="space-y-0.5">
-                {bookmarks.slice(0, 5).map((bm) => (
-                  <NavLink
-                    key={bm.id}
-                    to={bm.path}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-3 px-3 py-1.5 rounded-md text-xs transition-colors",
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-foreground"
-                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                      )
-                    }
-                  >
-                    <Bookmark className="h-3 w-3 shrink-0 fill-primary text-primary" />
-                    <span className="truncate">{bm.title}</span>
-                  </NavLink>
-                ))}
-                {bookmarks.length > 5 && (
-                  <p className="text-xs text-muted-foreground px-3 pt-1">
-                    +{bookmarks.length - 5} more
-                  </p>
-                )}
-              </div>
-            </div>
-          </>
-        )}
       </ScrollArea>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {mobileNavOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm transition-opacity"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      {/* Mobile Drawer (Left Slide-Over) */}
+      <aside
+        className={cn(
+          "md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0d0d0d] border-r border-white/10 text-white transition-transform duration-300 ease-in-out flex flex-col shadow-2xl",
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {renderNavContent(true)}
+      </aside>
+
+      {/* Desktop Fixed Sidebar */}
+      <aside
+        className={cn(
+          "hidden md:flex fixed left-0 top-0 z-30 h-full border-r border-white/10 bg-[#0d0d0d] text-white transition-all duration-300 flex-col",
+          sidebarOpen ? "w-60" : "w-16"
+        )}
+      >
+        {renderNavContent(false)}
+      </aside>
+    </>
   )
 }

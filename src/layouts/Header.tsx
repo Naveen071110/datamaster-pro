@@ -7,8 +7,17 @@ import { useTheme } from "@/shared/hooks/useTheme"
 
 export function Header() {
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
+  const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+
+  const handleMenuClick = () => {
+    if (window.innerWidth < 768) {
+      setMobileNavOpen(true)
+    } else {
+      toggleSidebar()
+    }
+  }
 
   return (
     <header className="h-14 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md flex items-center justify-between px-4 sticky top-0 z-20">
@@ -16,9 +25,9 @@ export function Header() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggleSidebar}
+          onClick={handleMenuClick}
           className="shrink-0 text-white/80 hover:text-white hover:bg-white/10"
-          aria-label="Toggle sidebar"
+          aria-label="Toggle navigation menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
