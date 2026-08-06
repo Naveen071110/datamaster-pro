@@ -4,7 +4,7 @@ import { Hexagon, ChevronRight, Terminal, ShieldCheck, Database, ArrowRight } fr
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 
 const VIDEO_URL = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260729_102822_0e6c87e8-c141-4744-bf32-ad30db296371.mp4"
-const PORTRAIT_URL = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260728_050334_5b076e26-0ce7-4898-b432-d764190e448f.png&w=1280&q=85"
+const POSTER_URL = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260728_050334_5b076e26-0ce7-4898-b432-d764190e448f.png&w=1280&q=85"
 
 function useRevealObserver() {
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function LandingPage() {
   return (
     <div className="relative bg-[#0a0a0a] text-white min-h-screen font-sans selection:bg-white/20 antialiased overflow-x-hidden">
       {/* Scroll-scrubbed background video */}
-      <ScrollVideo videoUrl={VIDEO_URL} />
+      <ScrollVideo videoUrl={VIDEO_URL} posterUrl={POSTER_URL} />
 
       {/* Main Content Overlay */}
       <div className="relative z-10">
