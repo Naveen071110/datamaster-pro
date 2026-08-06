@@ -190,20 +190,20 @@ export default function LandingPage() {
               {[
                 {
                   id: "01",
-                  title: "Real-time vision",
-                  body: "Reads context as it happens and surfaces what matters before you ask.",
+                  title: "In-Browser WebAssembly Engine",
+                  body: "Executes SQL queries directly inside your browser memory using SQLite compiled to WebAssembly.",
                   delay: "300ms",
                 },
                 {
                   id: "02",
-                  title: "Layered insight",
-                  body: "Moves from rough outline to sharp output without losing the thread.",
+                  title: "Multi-Dialect DDL Synthesis",
+                  body: "Translates raw CSV structures into optimized PostgreSQL, Snowflake, BigQuery, MySQL, and SQLite DDL.",
                   delay: "410ms",
                 },
                 {
                   id: "03",
-                  title: "Adaptive speed",
-                  body: "Learns your cadence and tightens every pass as you work.",
+                  title: "100% Zero-Server Privacy",
+                  body: "Your enterprise records, CSV files, and database schemas never leave your device.",
                   delay: "520ms",
                 },
               ].map((item) => (
@@ -231,6 +231,127 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Section Three — SEO Full Suite Matrix */}
+        <section className="px-5 sm:px-8 md:px-12 py-20 bg-[#0d0d0d]/80 border-t border-white/10 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="space-y-3">
+              <div className="inline-flex items-center border-l-2 border-white bg-white/10 px-3 py-1 backdrop-blur-md">
+                <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+                  Developer Utility Suite
+                </span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+                Everything you need to engineer data, right in your browser.
+              </h2>
+              <p className="text-white/70 max-w-2xl text-base sm:text-lg leading-relaxed">
+                DataMaster Pro equips data engineers, analysts, and database administrators with 7 essential privacy-first micro-SaaS utilities.
+              </p>
+            </div>
+
+            {/* 7 Tools Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  path: "/sql-sandbox",
+                  icon: Terminal,
+                  title: "CSV & SQL WASM Sandbox",
+                  desc: "Upload custom CSV files and query them using standard ANSI SQL in SQLite WebAssembly. Export results instantly to CSV or JSON.",
+                  badge: "Interactive WASM Engine"
+                },
+                {
+                  path: "/ddl-generator",
+                  icon: Database,
+                  title: "CSV to Multi-Dialect DDL",
+                  desc: "Convert CSV columns or JSON objects into production-ready CREATE TABLE DDL & INSERT statements for Postgres, Snowflake, BigQuery, MySQL, SQLite.",
+                  badge: "5 Dialects Supported"
+                },
+                {
+                  path: "/data-profiler",
+                  icon: ShieldCheck,
+                  title: "Data Profiler & Health Check",
+                  desc: "Automated dataset diagnostics: calculate NULL rates, unique cardinalities, min/max/mean metrics, and flag data quality anomaly alerts.",
+                  badge: "Automated Diagnostics"
+                },
+                {
+                  path: "/schema-diff",
+                  icon: Terminal,
+                  title: "Schema Diff & Migration Generator",
+                  desc: "Compare two DDL schemas side-by-side to highlight added (+), deleted (-), and modified (~) columns and auto-generate ALTER TABLE scripts.",
+                  badge: "Auto Migration SQL"
+                },
+                {
+                  path: "/sql-formatter",
+                  icon: Terminal,
+                  title: "SQL Formatter & Beautifier",
+                  desc: "Beautify unformatted SQL queries, align clauses, and standardize keyword capitalization (UPPERCASE vs lowercase) with custom indentation.",
+                  badge: "Instant Formatter"
+                },
+                {
+                  path: "/code-library",
+                  icon: Terminal,
+                  title: "Data Engineering Snippet Vault",
+                  desc: "50+ production-tested code snippets for SQL Window Functions, CTEs, Python ETL, PySpark DataFrames, and Airflow DAGs.",
+                  badge: "50+ Snippets"
+                },
+                {
+                  path: "/etl-workflows",
+                  icon: Terminal,
+                  title: "ETL Architecture DAG Builder",
+                  desc: "Visual ReactFlow canvas to design, visualize, document, and present end-to-end data pipeline workflow DAG architectures.",
+                  badge: "Visual DAG Canvas"
+                },
+              ].map((tool) => {
+                const Icon = tool.icon
+                return (
+                  <article
+                    key={tool.path}
+                    onClick={() => navigate(tool.path)}
+                    className="cursor-pointer group rounded-xl border border-white/15 bg-white/5 p-6 hover:bg-white/15 hover:border-white/30 transition-all duration-300 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 rounded-lg border border-white/20 bg-white/10 text-white">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 px-2 py-0.5 rounded">
+                          {tool.badge}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-white group-hover:text-white transition-colors">
+                        {tool.title}
+                      </h3>
+                      <p className="text-sm text-white/70 leading-relaxed mt-2">
+                        {tool.desc}
+                      </p>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-medium text-white/80 group-hover:text-white">
+                      <span>Open Utility</span>
+                      <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="px-5 sm:px-8 md:px-12 py-10 border-t border-white/15 bg-[#0a0a0a] text-white/60 text-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Hexagon className="h-5 w-5 text-white" />
+            <span className="font-medium text-white">DataMaster Pro</span>
+            <span>— Privacy-First Data Engineering Utility Suite</span>
+          </div>
+
+          <div className="flex items-center gap-6 text-white/80">
+            <button onClick={() => navigate("/app")} className="hover:text-white transition-colors">Dashboard</button>
+            <button onClick={() => navigate("/sql-sandbox")} className="hover:text-white transition-colors">SQL WASM</button>
+            <button onClick={() => navigate("/ddl-generator")} className="hover:text-white transition-colors">DDL Generator</button>
+            <button onClick={() => navigate("/code-library")} className="hover:text-white transition-colors">Snippet Vault</button>
+          </div>
+        </footer>
       </div>
     </div>
   )
