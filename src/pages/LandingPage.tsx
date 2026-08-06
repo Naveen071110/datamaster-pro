@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Hexagon, ChevronRight, Terminal, ShieldCheck, Database, ArrowRight } from "lucide-react"
+import { Hexagon, ChevronRight, Terminal } from "lucide-react"
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 
 const VIDEO_URL = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260729_102822_0e6c87e8-c141-4744-bf32-ad30db296371.mp4"
@@ -155,7 +155,7 @@ export default function LandingPage() {
           </div>
 
           {/* Bottom Area */}
-          <div className="flex-1 flex flex-col md:flex-row items-end justify-between gap-12 lg:gap-16 justify-end mt-16 sm:mt-0">
+          <div className="flex-1 flex flex-col md:flex-row items-end justify-between gap-12 lg:gap-16 mt-16 sm:mt-0">
             {/* Left Column */}
             <div className="max-w-xl">
               <h2 className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out text-5xl sm:text-6xl lg:text-7xl font-normal leading-[1.05] tracking-tight text-white drop-shadow-lg" style={{ transitionDelay: "180ms" }}>
