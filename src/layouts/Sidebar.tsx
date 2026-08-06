@@ -78,17 +78,17 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-30 h-full border-r border-sidebar-border bg-sidebar transition-all duration-300 flex flex-col",
+        "fixed left-0 top-0 z-30 h-full border-r border-white/10 bg-[#0d0d0d] text-white transition-all duration-300 flex flex-col",
         sidebarOpen ? "w-60" : "w-0 overflow-hidden md:w-16"
       )}
     >
-      <div className="flex items-center h-14 px-4 border-b border-sidebar-border">
+      <div className="flex items-center h-14 px-4 border-b border-white/10">
         <div className={cn("flex items-center gap-2", !sidebarOpen && "md:justify-center md:w-full")}>
-          <div className="h-7 w-7 rounded bg-primary flex items-center justify-center shrink-0">
-            <Terminal className="h-4 w-4 text-primary-foreground" />
+          <div className="h-7 w-7 rounded bg-white flex items-center justify-center shrink-0">
+            <Terminal className="h-4 w-4 text-black" />
           </div>
           {sidebarOpen && (
-            <span className="font-bold text-sm text-sidebar-foreground truncate">
+            <span className="font-bold text-sm text-white tracking-tight truncate">
               DataMaster Pro
             </span>
           )}
@@ -101,7 +101,7 @@ export function Sidebar() {
             <button
               onClick={() => toggleSection(sectionKey)}
               className={cn(
-                "flex items-center gap-1 w-full px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors",
+                "flex items-center gap-1 w-full px-2 py-1.5 font-mono text-[10px] font-semibold text-white/50 uppercase tracking-[0.15em] hover:text-white transition-colors",
                 !sidebarOpen && "md:sr-only"
               )}
             >
@@ -124,10 +124,10 @@ export function Sidebar() {
                         to={item.path}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200",
                             isActive
-                              ? "bg-sidebar-accent text-sidebar-foreground font-medium"
-                              : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
+                              ? "bg-white/15 text-white font-medium border border-white/15 shadow-sm"
+                              : "text-white/70 hover:text-white hover:bg-white/10",
                             !sidebarOpen && "md:justify-center md:px-2"
                           )
                         }

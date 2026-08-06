@@ -79,74 +79,78 @@ export default function HomePage() {
   const navigate = useNavigate()
 
   return (
-    <div className="p-4 sm:p-6 space-y-8 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-8 max-w-6xl mx-auto text-white">
       {/* Hero Banner */}
-      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-8 space-y-4 overflow-hidden">
+      <div className="relative rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-4 overflow-hidden shadow-xl">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 text-xs">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
+          <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 px-3 py-1 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
             100% In-Browser & Privacy-First
           </Badge>
-          <Badge variant="secondary" className="text-xs">
-            <Lock className="h-3 w-3 mr-1" />
+          <Badge variant="outline" className="text-xs border-white/20 text-white/80 bg-white/5">
+            <Lock className="h-3 w-3 mr-1 text-white/60" />
             Zero Server Uploads
           </Badge>
         </div>
 
         <div className="max-w-2xl space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            DataMaster Pro
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+            DataMaster Pro Dashboard
           </h1>
-          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
-            The free, open-source micro-utility suite for Data Engineers & Data Analysts. Parse CSVs, generate multi-dialect DDL, profile datasets, diff schemas, and beautify SQL — entirely in your browser.
+          <p className="text-white/80 text-base sm:text-lg leading-relaxed drop-shadow">
+            The privacy-first developer utility suite for Data Engineers & Data Analysts. Select any tool below to process CSVs, generate multi-dialect DDL, profile datasets, or format SQL.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 pt-2">
-          <Button size="lg" onClick={() => navigate("/sql-sandbox")} className="gap-2">
-            <Terminal className="h-5 w-5" />
-            Launch CSV SQL Sandbox
-          </Button>
-          <Button variant="outline" size="lg" onClick={() => navigate("/ddl-generator")} className="gap-2">
-            <FileCode className="h-5 w-5" />
-            CSV to DDL Generator
-          </Button>
+          <button
+            onClick={() => navigate("/sql-sandbox")}
+            className="rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-medium text-black hover:bg-white/85 transition-colors duration-300 inline-flex items-center gap-2"
+          >
+            <Terminal className="h-4 w-4" />
+            <span>Launch CSV SQL Sandbox</span>
+          </button>
+          <button
+            onClick={() => navigate("/ddl-generator")}
+            className="rounded-full border border-white/25 bg-white/10 backdrop-blur-md px-5 py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors duration-300 inline-flex items-center gap-2"
+          >
+            <FileCode className="h-4 w-4" />
+            <span>CSV to DDL Generator</span>
+          </button>
         </div>
       </div>
 
       {/* Feature Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight">Data Engineering Utility Suite</h2>
-          <span className="text-xs text-muted-foreground">7 Micro-SaaS Tools</span>
+          <h2 className="text-xl font-bold tracking-tight text-white">Developer Utility Suite</h2>
+          <span className="font-mono text-xs text-white/50 uppercase tracking-[0.15em]">7 Micro-SaaS Tools</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {microSaasTools.map((tool) => {
             const Icon = tool.icon
             return (
-              <Card
+              <div
                 key={tool.path}
-                className="cursor-pointer hover:border-primary/50 hover:shadow-md transition-all border-border/60 flex flex-col justify-between"
+                className="cursor-pointer hover:border-white/40 hover:bg-white/15 transition-all duration-300 border border-white/15 bg-white/10 backdrop-blur-md rounded-xl p-5 flex flex-col justify-between group"
                 onClick={() => navigate(tool.path)}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`p-2.5 rounded-lg border ${tool.color}`}>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2.5 rounded-lg border border-white/20 bg-white/10 text-white">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-mono">
+                    <Badge variant="outline" className="text-[10px] font-mono border-white/20 text-white/70">
                       {tool.badge}
                     </Badge>
                   </div>
-                  <CardTitle className="text-base">{tool.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-xs leading-relaxed">
+                  <h3 className="text-base font-semibold text-white group-hover:text-white transition-colors">{tool.title}</h3>
+                  <p className="text-xs leading-relaxed text-white/75 mt-2">
                     {tool.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                  </p>
+                </div>
+              </div>
             )
           })}
         </div>

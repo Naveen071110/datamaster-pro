@@ -114,23 +114,21 @@ export default function LandingPage() {
               </h1>
             </div>
 
-            {/* Right Glass Contact Card */}
-            <div className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out flex items-center gap-4 rounded-xl bg-white/15 p-3 backdrop-blur-md border border-white/15 w-full sm:w-auto" style={{ transitionDelay: "420ms" }}>
-              <img
-                src={PORTRAIT_URL}
-                alt="Mitha, co-founder of DataMaster Pro"
-                className="h-24 w-20 rounded-lg object-cover"
-              />
-              <div className="flex flex-col gap-1.5 pr-2">
-                <span className="text-sm font-medium text-white">Talk with Mitha</span>
+            {/* Right Glass Launch Card */}
+            <div className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out flex items-center gap-4 rounded-xl bg-white/15 p-4 backdrop-blur-md border border-white/15 w-full sm:w-auto" style={{ transitionDelay: "420ms" }}>
+              <div className="h-12 w-12 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <Terminal className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex flex-col gap-1 pr-2">
+                <span className="text-sm font-medium text-white">Interactive Workbench</span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60">
-                  Co-founder of DataMaster Pro
+                  100% Client-Side WASM
                 </span>
                 <button
-                  onClick={() => navigate("/app")}
-                  className="mt-1.5 inline-flex items-center justify-center gap-1 rounded-full bg-white px-4 py-2 text-xs font-medium text-black hover:bg-white/85 transition-colors duration-300"
+                  onClick={() => navigate("/sql-sandbox")}
+                  className="mt-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-medium text-black hover:bg-white/85 transition-colors duration-300"
                 >
-                  <span>Book 15-mins call</span>
+                  <span>Launch SQL Sandbox</span>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -175,14 +173,14 @@ export default function LandingPage() {
                   onClick={() => navigate("/sql-sandbox")}
                   className="rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-medium text-black hover:bg-white/85 transition-colors duration-300 inline-flex items-center gap-1.5"
                 >
-                  <span>Run the demo</span>
+                  <span>Launch SQL Sandbox</span>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => navigate("/app")}
                   className="rounded-full border border-white/25 bg-white/10 backdrop-blur-md px-5 py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors duration-300"
                 >
-                  Free consultation
+                  Open Developer Dashboard
                 </button>
               </div>
             </div>
