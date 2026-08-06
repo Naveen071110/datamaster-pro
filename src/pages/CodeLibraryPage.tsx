@@ -149,16 +149,27 @@ export default function CodeLibraryPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
-      {/* Toolbar */}
-      <div className="p-4 border-b border-border space-y-3">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] text-white">
+      {/* Header & Search Toolbar */}
+      <div className="p-4 sm:p-6 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+            <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+              Data Engineering Vault
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            50+ Snippets
+          </span>
+        </div>
+
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
           <Input
-            placeholder="Search snippets..."
+            placeholder="Search SQL, Python, PySpark, Airflow snippets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-[#141414] border-white/15 text-white placeholder:text-white/40 focus:border-white rounded-full"
           />
         </div>
 

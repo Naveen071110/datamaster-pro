@@ -109,57 +109,58 @@ export default function SchemaDiffPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <GitCompare className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight">Schema Diff & Drift Inspector</h1>
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto text-white">
+      {/* Header */}
+      <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-3 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+            <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+              Schema Drift Inspector
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            100% In-Browser
+          </span>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Compare two database schemas to detect drift, column additions/deletions, and auto-generate ALTER migration scripts. 100% in-browser.
+        <h1 className="text-2xl sm:text-4xl font-normal tracking-tight text-white">
+          Schema Diff & Migration Generator
+        </h1>
+        <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-2xl">
+          Compare baseline database DDL vs target DDL side-by-side to highlight added (+), removed (-), and modified (~) columns, generating migration ALTER TABLE scripts automatically.
         </p>
       </div>
 
       {/* Schema Inputs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">1. Base Schema (Current Production)</CardTitle>
-            <CardDescription className="text-xs">Paste baseline CREATE TABLE DDL script.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              value={schemaA}
-              onChange={(e) => setSchemaA(e.target.value)}
-              className="w-full h-56 p-3 font-mono text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring leading-relaxed"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">2. Target Schema (Proposed / New)</CardTitle>
-            <CardDescription className="text-xs">Paste target CREATE TABLE DDL script.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              value={schemaB}
-              onChange={(e) => setSchemaB(e.target.value)}
-              className="w-full h-56 p-3 font-mono text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring leading-relaxed"
-            />
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-3 shadow-xl">
+          <h2 className="text-base font-semibold text-white">1. Base Schema (Current Production)</h2>
+          <p className="text-xs text-white/60">Paste baseline CREATE TABLE DDL script.</p>
+          <textarea
+            value={schemaA}
+            onChange={(e) => setSchemaA(e.target.value)}
+            className="w-full h-56 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
+          />
+        </div>
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-3 shadow-xl">
+          <h2 className="text-base font-semibold text-white">2. Target Schema (Proposed / New)</h2>
+          <p className="text-xs text-white/60">Paste target CREATE TABLE DDL script.</p>
+          <textarea
+            value={schemaB}
+            onChange={(e) => setSchemaB(e.target.value)}
+            className="w-full h-56 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
+          />
+        </div>
       </div>
 
       {/* Diff Analysis & ALTER Script */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column Breakdown */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Schema Comparison Summary</CardTitle>
-            <CardDescription className="text-xs">Structural changes detected between schemas.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="lg:col-span-2 rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
+          <div className="border-b border-white/10 pb-3">
+            <h2 className="text-base font-semibold text-white">Schema Comparison Summary</h2>
+            <p className="text-xs text-white/60">Structural changes detected between schemas.</p>
+          </div>
+          <div className="space-y-4">
             <div className="flex gap-2">
               <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 bg-emerald-500/10">
                 +{diffResult.added.length} Added
@@ -214,26 +215,25 @@ export default function SchemaDiffPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Generated ALTER SQL */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Migration DDL Script</CardTitle>
-              <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5 text-xs">
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <pre className="w-full h-64 p-3 font-mono text-xs rounded-md border border-input bg-muted/40 overflow-auto whitespace-pre-wrap leading-relaxed">
-              <code>{diffResult.alterSql}</code>
-            </pre>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-base font-semibold text-white">Migration DDL Script</h2>
+            <button
+              onClick={handleCopy}
+              className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copied ? "Copied" : "Copy Migration SQL"}</span>
+            </button>
+          </div>
+          <pre className="w-full h-64 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white overflow-auto whitespace-pre-wrap leading-relaxed">
+            <code>{diffResult.alterSql}</code>
+          </pre>
+        </div>
       </div>
     </div>
   )

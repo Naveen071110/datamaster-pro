@@ -155,183 +155,158 @@ export default function DataProfilerPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <BarChart3 className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight">Data Profiler & Health Inspector</h1>
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto text-white">
+      {/* Header */}
+      <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-3 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+            <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+              Data Quality Inspector
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            100% In-Browser
+          </span>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Instant statistical health check, data type detection, and anomaly diagnostic report for CSV datasets. 100% client-side.
+        <h1 className="text-2xl sm:text-4xl font-normal tracking-tight text-white">
+          Data Profiler & Health Diagnostic
+        </h1>
+        <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-2xl">
+          Automated statistical health check, data type detection, NULL rate inspector, and quality anomaly warning engine for CSV datasets.
         </p>
       </div>
 
       {/* Input / Control Card */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">Dataset Input</CardTitle>
-            <label htmlFor="csv-profiler-upload">
-              <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer" asChild>
-                <span>
-                  <Upload className="h-4 w-4" />
-                  Upload CSV File
-                </span>
-              </Button>
-              <input id="csv-profiler-upload" type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
-            </label>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <textarea
-            value={csvContent}
-            onChange={(e) => setCsvContent(e.target.value)}
-            className="w-full h-32 p-3 font-mono text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="Paste CSV rows here..."
-          />
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <h2 className="text-base font-semibold text-white">Dataset Input</h2>
+          <label htmlFor="csv-profiler-upload" className="cursor-pointer">
+            <span className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors">
+              <Upload className="h-3.5 w-3.5" />
+              Upload CSV File
+            </span>
+            <input id="csv-profiler-upload" type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
+          </label>
+        </div>
+        <textarea
+          value={csvContent}
+          onChange={(e) => setCsvContent(e.target.value)}
+          className="w-full h-32 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white"
+          placeholder="Paste CSV rows here..."
+        />
+      </div>
 
       {/* Profiling Report */}
       {profileResult && (
         <div className="space-y-6">
           {/* Executive Summary Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                  <Table className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Total Rows</p>
-                  <p className="text-2xl font-bold">{profileResult.totalRows.toLocaleString()}</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex items-center gap-4 shadow-lg">
+              <div className="p-3 rounded-lg border border-white/20 bg-white/10 text-white">
+                <Table className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs text-white/60 font-medium">Total Rows</p>
+                <p className="text-2xl font-bold text-white">{profileResult.totalRows.toLocaleString()}</p>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                  <Database className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Columns Profiled</p>
-                  <p className="text-2xl font-bold">{profileResult.totalCols}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex items-center gap-4 shadow-lg">
+              <div className="p-3 rounded-lg border border-white/20 bg-white/10 text-white">
+                <Database className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs text-white/60 font-medium">Columns Profiled</p>
+                <p className="text-2xl font-bold text-white">{profileResult.totalCols}</p>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-500">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Data Health Score</p>
-                  <p className="text-2xl font-bold">{profileResult.overallHealthScore} / 100</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex items-center gap-4 shadow-lg">
+              <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/20 text-emerald-300">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs text-white/60 font-medium">Data Health Score</p>
+                <p className="text-2xl font-bold text-emerald-400">{profileResult.overallHealthScore} / 100</p>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-amber-500/10 text-amber-500">
-                  <AlertTriangle className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Column Warnings</p>
-                  <p className="text-2xl font-bold">
-                    {profileResult.columnProfiles.reduce((acc, c) => acc + c.warnings.length, 0)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex items-center gap-4 shadow-lg">
+              <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/20 text-amber-300">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs text-white/60 font-medium">Column Warnings</p>
+                <p className="text-2xl font-bold text-amber-400">
+                  {profileResult.columnProfiles.reduce((acc, c) => acc + c.warnings.length, 0)}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Column Profile Table */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Column Breakdown & Quality Metrics</CardTitle>
-              <CardDescription className="text-xs">Detailed statistical distributions per column.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      <th className="p-3 font-semibold">Column Name</th>
-                      <th className="p-3 font-semibold">Inferred Type</th>
-                      <th className="p-3 font-semibold">Null Rate</th>
-                      <th className="p-3 font-semibold">Cardinality (Unique)</th>
-                      <th className="p-3 font-semibold">Numeric Summary (Min / Max / Mean)</th>
-                      <th className="p-3 font-semibold">Top Values</th>
-                      <th className="p-3 font-semibold">Quality Alerts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {profileResult.columnProfiles.map((col) => (
-                      <tr key={col.name} className="hover:bg-muted/20">
-                        <td className="p-3 font-mono font-medium">{col.name}</td>
-                        <td className="p-3">
-                          <Badge variant="outline" className="text-[10px] font-mono">
-                            {col.inferredType}
-                          </Badge>
-                        </td>
-                        <td className="p-3 w-40">
+          <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
+            <div className="border-b border-white/10 pb-3">
+              <h2 className="text-base font-semibold text-white">Column Breakdown & Quality Metrics</h2>
+              <p className="text-xs text-white/60">Detailed statistical distributions per column.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/5 text-white/80">
+                    <th className="p-3 font-semibold">Column Name</th>
+                    <th className="p-3 font-semibold">Inferred Type</th>
+                    <th className="p-3 font-semibold">Null Rate</th>
+                    <th className="p-3 font-semibold">Cardinality (Unique)</th>
+                    <th className="p-3 font-semibold">Numeric Summary (Min / Max / Mean)</th>
+                    <th className="p-3 font-semibold">Top Values</th>
+                    <th className="p-3 font-semibold">Quality Alerts</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {profileResult.columnProfiles.map((col) => (
+                    <tr key={col.name} className="hover:bg-white/5">
+                      <td className="p-3 font-mono font-medium text-white">{col.name}</td>
+                      <td className="p-3">
+                        <span className="font-mono text-[10px] border border-white/20 px-2 py-0.5 rounded text-white">
+                          {col.inferredType}
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono">
+                        <span className={col.nullPct > 20 ? "text-rose-400 font-bold" : "text-white/80"}>
+                          {col.nullCount} ({col.nullPct.toFixed(1)}%)
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono text-white/80">
+                        {col.uniqueCount} ({col.uniquePct.toFixed(0)}%)
+                      </td>
+                      <td className="p-3 font-mono text-white/70">
+                        {col.minVal !== undefined ? `${col.minVal} .. ${col.maxVal} (avg ${col.meanVal})` : "N/A"}
+                      </td>
+                      <td className="p-3 font-mono text-[10px] text-white/60">
+                        {col.topValues.map((tv) => `${tv.value} (${tv.count})`).join(", ")}
+                      </td>
+                      <td className="p-3">
+                        {col.warnings.length > 0 ? (
                           <div className="space-y-1">
-                            <div className="flex justify-between text-[10px]">
-                              <span>{col.nullCount} nulls</span>
-                              <span>{col.nullPct.toFixed(1)}%</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                              <div className="bg-primary h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, col.nullPct))}%` }} />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <span className="font-medium">{col.uniqueCount}</span>
-                          <span className="text-[10px] text-muted-foreground ml-1">({col.uniquePct.toFixed(0)}%)</span>
-                        </td>
-                        <td className="p-3 font-mono text-[11px]">
-                          {col.minVal !== undefined ? (
-                            <div>
-                              <span>Min: {col.minVal}</span> | <span>Max: {col.maxVal}</span> | <span>Avg: {col.meanVal}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="p-3">
-                          <div className="flex flex-wrap gap-1">
-                            {col.topValues.map((tv, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-[10px] py-0 px-1.5 font-normal">
-                                {tv.value || '""'} ({tv.count})
-                              </Badge>
+                            {col.warnings.map((w, idx) => (
+                              <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 block w-fit">
+                                {w}
+                              </span>
                             ))}
                           </div>
-                        </td>
-                        <td className="p-3">
-                          {col.warnings.length > 0 ? (
-                            <div className="space-y-1">
-                              {col.warnings.map((w, idx) => (
-                                <Badge key={idx} variant="destructive" className="text-[10px] py-0.5 px-1.5 font-normal block w-fit">
-                                  {w}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] text-emerald-500 border-emerald-500/30">
-                              Clean
-                            </Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            Clean
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
     </div>

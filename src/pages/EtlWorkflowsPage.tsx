@@ -236,67 +236,74 @@ export default function EtlWorkflowsPage() {
   // No preset selected
   if (!selectedPreset) {
     return (
-      <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">ETL Workflow Visualizer</h1>
-          <p className="text-muted-foreground mt-1">
-            Explore common ETL pipeline patterns with interactive workflow diagrams.
+      <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto text-white">
+        {/* Header */}
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-3 shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+              <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+                Visual Architecture Canvas
+              </span>
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+              Interactive ReactFlow
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-normal tracking-tight text-white">
+            ETL Workflow Architecture DAGs
+          </h1>
+          <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-2xl">
+            Design, document, and simulate data pipeline workflow architectures with interactive ReactFlow DAG diagrams.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {workflowPresets.map((preset) => (
-            <Card
+            <div
               key={preset.id}
-              className="cursor-pointer hover:bg-accent/50 transition-colors border-border/50"
+              className="cursor-pointer hover:border-white/40 hover:bg-white/15 transition-all duration-300 border border-white/15 bg-white/10 backdrop-blur-md rounded-xl p-5 flex flex-col justify-between group"
               onClick={() => handleSelectPreset(preset.id)}
             >
-              <CardContent className="p-4">
+              <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <GitBranch className="h-4 w-4 text-primary" />
-                  <h3 className="font-medium text-sm">{preset.name}</h3>
+                  <GitBranch className="h-4 w-4 text-white" />
+                  <h3 className="font-medium text-sm text-white group-hover:text-white transition-colors">{preset.name}</h3>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{preset.description}</p>
-                <div className="flex flex-wrap gap-1">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px]",
-                      preset.difficulty === "beginner" && "text-green-400 border-green-500/30",
-                      preset.difficulty === "intermediate" && "text-yellow-400 border-yellow-500/30",
-                      preset.difficulty === "advanced" && "text-red-400 border-red-500/30"
-                    )}
-                  >
+                <p className="text-xs text-white/70 line-clamp-2 mb-3 leading-relaxed">{preset.description}</p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-mono text-[10px] uppercase border border-white/20 px-2 py-0.5 rounded text-white/80">
                     {preset.difficulty}
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] capitalize">
+                  </span>
+                  <span className="font-mono text-[10px] uppercase border border-white/15 px-2 py-0.5 rounded text-white/60">
                     {preset.category.replace("-", " ")}
-                  </Badge>
-                  <span className="text-[10px] text-muted-foreground">
+                  </span>
+                  <span className="text-[10px] text-white/50">
                     {preset.nodes.length} nodes
                   </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
-        <EmptyState
-          title="Select a workflow to visualize"
-          message="Choose a preset from the list above to see its interactive flow diagram."
-        />
       </div>
     )
   }
 
   return (
-    <div className={cn("flex flex-col", fullscreen ? "fixed inset-0 z-50 bg-background" : "h-[calc(100vh-3.5rem)]")}>
+    <div className={cn("flex flex-col text-white", fullscreen ? "fixed inset-0 z-50 bg-[#0a0a0a]" : "h-[calc(100vh-3.5rem)]")}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/10">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedPresetId(null)} className="text-xs">
-            ← Back
-          </Button>
-          <span className="text-sm font-medium">{selectedPreset.name}</span>
-          <Badge variant="outline" className="text-[10px] capitalize">{selectedPreset.difficulty}</Badge>
+      <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSelectedPresetId(null)}
+            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            ← Back to Presets
+          </button>
+          <span className="text-sm font-medium text-white">{selectedPreset.name}</span>
+          <span className="font-mono text-[10px] uppercase border border-white/15 px-2 py-0.5 rounded text-white/60">
+            {selectedPreset.difficulty}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <Button

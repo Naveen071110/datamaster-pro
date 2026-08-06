@@ -69,31 +69,38 @@ export default function SqlFormatterPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <AlignLeft className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight">SQL Formatter & Query Beautifier</h1>
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto text-white">
+      {/* Header */}
+      <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-3 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+            <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+              Syntax Beautifier
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            100% In-Browser
+          </span>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Format raw SQL queries, align clauses, and standardize keyword casing across database dialects. 100% in-browser.
+        <h1 className="text-2xl sm:text-4xl font-normal tracking-tight text-white">
+          SQL Query Formatter & Alignment Engine
+        </h1>
+        <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-2xl">
+          Standardize unformatted SQL queries, align clauses, and format keyword casing (UPPERCASE vs lowercase) with custom indentation.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Card */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">1. Raw SQL Input</CardTitle>
-            <CardDescription className="text-xs">Paste single-line or unformatted SQL statements.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 flex-1 flex flex-col">
-            <textarea
-              value={rawSql}
-              onChange={(e) => setRawSql(e.target.value)}
-              className="w-full h-72 p-3 font-mono text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring leading-relaxed"
-              placeholder="SELECT * FROM table..."
-            />
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-3 flex flex-col shadow-xl">
+          <h2 className="text-base font-semibold text-white">1. Raw SQL Input</h2>
+          <p className="text-xs text-white/60">Paste single-line or unformatted SQL statements.</p>
+          <textarea
+            value={rawSql}
+            onChange={(e) => setRawSql(e.target.value)}
+            className="w-full h-72 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
+            placeholder="SELECT * FROM table..."
+          />
 
             {/* Options */}
             <div className="pt-3 border-t border-border flex items-center justify-between">
@@ -122,27 +129,25 @@ export default function SqlFormatterPage() {
                 </select>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Output Card */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">2. Formatted Output</CardTitle>
-              <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5 text-xs">
-                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Copied" : "Copy SQL"}
-              </Button>
-            </div>
-            <CardDescription className="text-xs">Standardized SQL syntax.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <pre className="w-full h-full min-h-[340px] p-4 font-mono text-xs rounded-md border border-input bg-muted/40 overflow-auto whitespace-pre-wrap leading-relaxed">
-              <code>{formattedSql}</code>
-            </pre>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex flex-col space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-base font-semibold text-white">2. Formatted Output</h2>
+            <button
+              onClick={handleCopy}
+              className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copied ? "Copied" : "Copy Formatted SQL"}</span>
+            </button>
+          </div>
+          <p className="text-xs text-white/60">Standardized SQL syntax.</p>
+          <pre className="w-full h-full min-h-[340px] p-4 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white overflow-auto whitespace-pre-wrap leading-relaxed">
+            <code>{formattedSql}</code>
+          </pre>
+        </div>
       </div>
     </div>
   )

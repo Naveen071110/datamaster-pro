@@ -161,47 +161,50 @@ export default function DdlGeneratorPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <FileCode className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight">CSV to Multi-Dialect DDL Generator</h1>
+    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto text-white">
+      {/* Header */}
+      <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-6 sm:p-8 space-y-3 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1 backdrop-blur-md">
+            <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
+              Multi-Dialect DDL Synthesizer
+            </span>
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            100% In-Browser
+          </span>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Convert raw CSV or JSON into production-ready DDL schemas & insert scripts for any database dialect. 100% in-browser.
+        <h1 className="text-2xl sm:text-4xl font-normal tracking-tight text-white">
+          CSV to Production DDL Generator
+        </h1>
+        <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-2xl">
+          Instantly infer database schema types from CSV or JSON files and generate CREATE TABLE & INSERT statements across PostgreSQL, Snowflake, BigQuery, MySQL, and SQLite.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Input Data */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">1. Input CSV or JSON Data</CardTitle>
-              <label htmlFor="file-upload">
-                <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer" asChild>
-                  <span>
-                    <Upload className="h-4 w-4" />
-                    Upload File
-                  </span>
-                </Button>
-                <input id="file-upload" type="file" accept=".csv,.json,.txt" className="hidden" onChange={handleFileUpload} />
-              </label>
-            </div>
-            <CardDescription className="text-xs">
-              Paste raw CSV rows or a JSON array. Data never leaves your device.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 flex-1 flex flex-col">
-            <textarea
-              value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
-              placeholder="id,name,email\n1,Alice,alice@example.com"
-              className="w-full h-72 p-3 font-mono text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-
-            {/* Options */}
-            <div className="space-y-3 pt-2 border-t border-border">
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex flex-col space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-base font-semibold text-white">1. Input CSV or JSON Data</h2>
+            <label htmlFor="ddl-file-upload" className="cursor-pointer">
+              <span className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 inline-flex items-center gap-1.5 transition-colors">
+                <Upload className="h-3.5 w-3.5" />
+                Upload File
+              </span>
+              <input id="ddl-file-upload" type="file" accept=".csv,.json" className="hidden" onChange={handleFileUpload} />
+            </label>
+          </div>
+          <p className="text-xs text-white/60">
+            Paste raw CSV rows or a JSON array. Data never leaves your device.
+          </p>
+          <textarea
+            value={rawInput}
+            onChange={(e) => setRawInput(e.target.value)}
+            className="w-full h-64 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
+            placeholder="Paste CSV headers and rows or JSON payload here..."
+          />
+          <div className="space-y-3 pt-2 border-t border-white/10">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium mb-1.5 block">Target SQL Dialect</label>
@@ -257,40 +260,41 @@ export default function DdlGeneratorPage() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
         {/* Right Column: Generated DDL */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-semibold">2. Generated DDL</CardTitle>
-                <Badge variant="outline" className="uppercase text-[10px] font-mono">
-                  {dialect}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
-                  {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copied" : "Copy SQL"}
-                </Button>
-                <Button variant="default" size="sm" onClick={handleDownload} className="gap-1.5">
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </div>
+        <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 flex flex-col space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-white">2. Generated DDL</h2>
+              <span className="font-mono text-[10px] uppercase border border-white/20 bg-white/10 px-2 py-0.5 rounded text-white">
+                {dialect}
+              </span>
             </div>
-            <CardDescription className="text-xs">
-              Inferred {columnsCount} columns across {rowsCount} rows.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <pre className="w-full h-full min-h-[380px] p-4 font-mono text-xs rounded-md border border-input bg-muted/40 overflow-auto whitespace-pre-wrap leading-relaxed">
-              <code>{ddlOutput}</code>
-            </pre>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopy}
+                className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? "Copied" : "Copy SQL"}</span>
+              </button>
+              <button
+                onClick={handleDownload}
+                className="rounded-full bg-white text-black hover:bg-white/85 text-xs font-medium px-4 py-1.5 inline-flex items-center gap-1.5 transition-colors shadow-md"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download</span>
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-white/60">
+            Inferred {columnsCount} columns across {rowsCount} rows.
+          </p>
+          <pre className="w-full h-full min-h-[380px] p-4 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white overflow-auto whitespace-pre-wrap leading-relaxed">
+            <code>{ddlOutput}</code>
+          </pre>
+        </div>
       </div>
     </div>
   )

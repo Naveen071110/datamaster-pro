@@ -158,56 +158,49 @@ export default function SqlSandboxPage() {
   return (
     <div className="h-[calc(100vh-3.5rem)] flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/10">
+      <div className="flex flex-wrap items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md gap-2">
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
+          <button
             onClick={handleExecute}
             disabled={!activeTab || !activeTab.sql.trim() || activeTab?.isExecuting}
+            className="rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black hover:bg-white/85 transition-colors duration-200 inline-flex items-center gap-1.5 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {activeTab?.isExecuting ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Play className="h-4 w-4 mr-1.5" />
+              <Play className="h-3.5 w-3.5 fill-black" />
             )}
-            Run
-          </Button>
+            <span>Run SQL</span>
+          </button>
 
-          <label htmlFor="sandbox-csv-upload">
-            <Button variant="outline" size="sm" className="cursor-pointer gap-1 text-xs" asChild>
-              <span>
-                <Database className="h-3.5 w-3.5" />
-                Upload CSV Table
-              </span>
-            </Button>
+          <label htmlFor="sandbox-csv-upload" className="cursor-pointer">
+            <span className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-white hover:bg-white/20 transition-colors duration-200 inline-flex items-center gap-1.5">
+              <Database className="h-3.5 w-3.5 text-white/70" />
+              Upload CSV Table
+            </span>
             <input id="sandbox-csv-upload" type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
           </label>
 
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => activeTabId && clearResults(activeTabId)}
             disabled={!activeTab?.result && !activeTab?.error}
+            className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors duration-200 inline-flex items-center gap-1.5 disabled:opacity-40"
           >
-            <RotateCcw className="h-4 w-4 mr-1.5" />
-            Clear
-          </Button>
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>Clear</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px]">
-            SQLite WASM Engine
-          </Badge>
-          <Button
-            variant="ghost"
-            size="sm"
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 border border-white/15 bg-white/5 px-2.5 py-1 rounded-full">
+            / SQL WASM ENGINE
+          </span>
+          <button
             onClick={() => setShowSchema(!showSchema)}
-            className="text-xs gap-1"
+            className="text-xs text-white/70 hover:text-white transition-colors border border-white/15 px-2.5 py-1 rounded-full bg-white/5"
           >
-            <Database className="h-3.5 w-3.5" />
-            Schema
-            {showSchema ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </Button>
+            {showSchema ? "Hide Schema" : "Show Schema"}
+          </button>
         </div>
       </div>
 
