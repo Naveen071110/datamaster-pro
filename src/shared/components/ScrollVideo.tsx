@@ -14,7 +14,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     const canvas = canvasRef.current
     if (!video || !canvas) return
 
-    // Ensure mobile browsers initialize video decoding
+    // Mobile & Web WebKit / Blink video initialization
     video.muted = true
     video.playsInline = true
     video.autoplay = true
@@ -29,12 +29,17 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     let targetProgress = 0
     let smoothedProgress = 0
     let isExtracting = false
-    const frameCache: ImageBitmap[] = []
+    let isSeeking = false
+
+    const TOTAL_FRAMES = 60
+    const frameArray: (ImageBitmap | null)[] = new Array(TOTAL_FRAMES).fill(null)
 
     const updateCanvasSize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      canvas.width = (window.innerWidth || document.documentElement.clientWidth || 360) * dpr
-      canvas.height = (window.innerHeight || document.documentElement.clientHeight || 640) * dpr
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      const w = window.innerWidth || document.documentElement.clientWidth || 360
+      const h = window.innerHeight || document.documentElement.clientHeight || 640
+      canvas.width = Math.round(w * dpr)
+      canvas.height = Math.round(h * dpr)
     }
     updateCanvasSize()
     window.addEventListener("resize", updateCanvasSize)
@@ -49,25 +54,25 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     }
     window.addEventListener("scroll", handleScroll, { passive: true })
     window.addEventListener("touchmove", handleScroll, { passive: true })
+    handleScroll()
 
-    // Frame Extraction Loop
+    // Pre-computed Frame Cache Extraction Loop
     const extractFrames = async () => {
       if (isExtracting || !video.duration || isNaN(video.duration)) return
       isExtracting = true
 
-      const totalFrames = Math.min(80, Math.floor(video.duration * 12))
       const offCanvas = document.createElement("canvas")
       const offCtx = offCanvas.getContext("2d")
 
-      // Mobile optimized downscaling (960px max width)
-      const scale = Math.min(1, 960 / (video.videoWidth || 1920))
+      // Scaled width for high performance & crisp rendering (1024px)
+      const scale = Math.min(1, 1024 / (video.videoWidth || 1920))
       const targetW = Math.round((video.videoWidth || 1920) * scale)
       const targetH = Math.round((video.videoHeight || 1080) * scale)
       offCanvas.width = targetW
       offCanvas.height = targetH
 
-      for (let i = 0; i < totalFrames; i++) {
-        const time = (i / (totalFrames - 1)) * (video.duration - 0.05)
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        const time = (i / (TOTAL_FRAMES - 1)) * (video.duration - 0.05)
         try {
           video.currentTime = time
           await new Promise((res) => {
@@ -76,13 +81,13 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
               res(true)
             }
             video.addEventListener("seeked", onSeek)
-            setTimeout(res, 80) // Safety timeout for mobile seek delays
+            setTimeout(res, 90) // Mobile & Desktop seek safety limit
           })
 
           if (offCtx) {
             offCtx.drawImage(video, 0, 0, targetW, targetH)
             const bitmap = await createImageBitmap(offCanvas)
-            frameCache.push(bitmap)
+            frameArray[i] = bitmap
           }
         } catch {
           // ignore extraction error
@@ -91,27 +96,36 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
     }
 
     const render = () => {
-      // Smooth lerp
+      // Smooth dynamic lerp
       const delta = targetProgress - smoothedProgress
-      const lerpFactor = Math.min(0.35, 0.16 + Math.abs(delta) * 0.4)
+      const lerpFactor = Math.min(0.3, 0.12 + Math.abs(delta) * 0.35)
       smoothedProgress += delta * lerpFactor
 
       if (ctx) {
         const canvasWidth = canvas.width
         const canvasHeight = canvas.height
 
+        const targetIndex = Math.min(
+          Math.floor(smoothedProgress * TOTAL_FRAMES),
+          TOTAL_FRAMES - 1
+        )
+        const cachedBitmap = frameArray[targetIndex]
+
         let source: CanvasImageSource | null = null
 
-        if (frameCache.length > 0) {
-          const idx = Math.min(
-            Math.floor(smoothedProgress * frameCache.length),
-            frameCache.length - 1
-          )
-          source = frameCache[idx]
+        if (cachedBitmap) {
+          source = cachedBitmap
         } else if (video.readyState >= 2) {
           const targetTime = smoothedProgress * (video.duration - 0.05)
-          if (Math.abs(video.currentTime - targetTime) > 0.04) {
+          // Guard video seeking so currentTime is not spammed on rAF tick
+          if (!isSeeking && Math.abs(video.currentTime - targetTime) > 0.04) {
+            isSeeking = true
             video.currentTime = targetTime
+            const onSeekEnd = () => {
+              video.removeEventListener("seeked", onSeekEnd)
+              isSeeking = false
+            }
+            video.addEventListener("seeked", onSeekEnd)
           }
           source = video
         }
@@ -137,7 +151,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
 
           ctx.drawImage(source, offsetX, offsetY, drawW, drawH)
         } else {
-          // Ambient mobile fallback background while loading video frames
+          // Ambient background fallback while video loads
           ctx.fillStyle = "#0a0a0a"
           ctx.fillRect(0, 0, canvasWidth, canvasHeight)
         }
@@ -152,7 +166,7 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
       extractFrames()
     }
 
-    // Trigger video load on mobile WebKit
+    // Trigger WebKit play/pause to unlock decoder
     video.play().then(() => {
       video.pause()
     }).catch(() => {})
@@ -172,13 +186,13 @@ export function ScrollVideo({ videoUrl }: ScrollVideoProps) {
       video.removeEventListener("loadeddata", onVideoReady)
       video.removeEventListener("canplay", onVideoReady)
       cancelAnimationFrame(animationFrameId)
-      frameCache.forEach((bm) => bm.close?.())
+      frameArray.forEach((bm) => bm?.close())
     }
   }, [videoUrl])
 
   return (
     <div className="fixed inset-0 z-0 bg-[#0a0a0a] overflow-hidden pointer-events-none">
-      {/* Offscreen video element styled to prevent iOS WebKit suspend */}
+      {/* Offscreen video element */}
       <video
         ref={videoRef}
         src={videoUrl}
