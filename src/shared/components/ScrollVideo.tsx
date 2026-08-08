@@ -16,6 +16,9 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
 
     video.muted = true
     video.playsInline = true
+    video.setAttribute("webkit-playsinline", "true")
+    video.setAttribute("disablePictureInPicture", "true")
+    video.setAttribute("disableRemotePlayback", "true")
     video.autoplay = true
 
     let animationFrameId: number
@@ -117,10 +120,14 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
         src={videoUrl}
         muted
         playsInline
+        {...{ "webkit-playsinline": "true" } as Record<string, string>}
         autoPlay
         preload="auto"
-        crossOrigin="anonymous"
-        className={`w-full h-full object-cover transition-opacity duration-700 pointer-events-none will-change-transform ${
+        disablePictureInPicture
+        disableRemotePlayback
+        tabIndex={-1}
+        aria-hidden="true"
+        className={`w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none will-change-transform ${
           isReady ? "opacity-100" : "opacity-0"
         }`}
       />
