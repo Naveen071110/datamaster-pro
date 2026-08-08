@@ -93,7 +93,7 @@ export default function LandingPage() {
 
             {/* Right Intro */}
             <p className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out max-w-xs sm:text-right text-lg sm:text-xl leading-relaxed text-white drop-shadow-md" style={{ transitionDelay: "300ms" }}>
-              We design automation that brings clarity, precision, and efficiency to the way your company operates.
+              Fast, client-side utilities built to simplify SQL querying, DDL synthesis, data profiling, and pipeline design.
             </p>
           </div>
 
@@ -103,14 +103,14 @@ export default function LandingPage() {
             <div className="max-w-xl">
               <div className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md mb-5" style={{ transitionDelay: "150ms" }}>
                 <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-                  We Automate 100+ Businesses
+                  Built for Data Engineers & Analysts
                 </span>
               </div>
 
               <h1 className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out text-5xl sm:text-6xl lg:text-7xl font-normal leading-[1.05] tracking-tight text-white drop-shadow-lg" style={{ transitionDelay: "280ms" }}>
-                Clear. Precise.
+                Query. Profile.
                 <br />
-                Automated.
+                Transform.
               </h1>
             </div>
 
@@ -145,12 +145,12 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-8">
             <div className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md" style={{ transitionDelay: "120ms" }}>
               <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-                Insight On Demand
+                Data Engineering Suite
               </span>
             </div>
 
             <p className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out max-w-sm sm:text-right text-lg sm:text-xl leading-relaxed text-white drop-shadow-md" style={{ transitionDelay: "220ms" }}>
-              Our AI doesn't just respond — it interprets, sharpens, and delivers the signal you need.
+              Zero server uploads. Parse CSVs, query SQLite WebAssembly, generate multi-dialect DDL, and diff schemas entirely in your browser.
             </p>
           </div>
 
@@ -159,13 +159,13 @@ export default function LandingPage() {
             {/* Left Column */}
             <div className="max-w-xl">
               <h2 className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out text-5xl sm:text-6xl lg:text-7xl font-normal leading-[1.05] tracking-tight text-white drop-shadow-lg" style={{ transitionDelay: "180ms" }}>
-                Learn to see
+                High-Performance
                 <br />
-                brilliantly.
+                Data Tooling.
               </h2>
 
               <p className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out mt-6 max-w-md text-sm sm:text-base text-white/80 drop-shadow-md leading-relaxed" style={{ transitionDelay: "320ms" }}>
-                From the first sketch to the final render, DataMaster turns raw intent into decisions your team can act on — quietly, precisely, at speed.
+                DataMaster Pro combines 7 essential micro-utilities into a single developer workbench — giving data engineers, analysts, and developers instant control over data workflows.
               </p>
 
               <div className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out mt-8 flex flex-wrap gap-3" style={{ transitionDelay: "420ms" }}>
@@ -237,8 +237,9 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Hexagon className="h-5 w-5 text-white" />
             <span className="font-medium text-white">datamaster</span>
-            <span>— Today Data Engine Aligns With Bold Pipelines</span>
+            <span>— In-browser developer utility suite for data professionals</span>
           </div>
+
 
           <div className="flex items-center gap-6 text-white/80">
             <button onClick={() => navigate("/app")} className="hover:text-white transition-colors">Dashboard</button>
