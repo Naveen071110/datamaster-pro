@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Hexagon, ChevronRight, Terminal } from "lucide-react"
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 
-const VIDEO_URL = "/videos/hero-scroll.mp4"
+const VIDEO_URL = "/videos/hero-scroll.mp4?v=2"
 const POSTER_URL = "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260728_050334_5b076e26-0ce7-4898-b432-d764190e448f.png&w=1280&q=85"
 
 function useRevealObserver() {
