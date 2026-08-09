@@ -10,7 +10,6 @@ import {
   GitBranch,
   ChevronDown,
   ChevronRight,
-  ChevronLeft,
   X,
 } from "lucide-react"
 import { useState } from "react"
@@ -171,35 +170,16 @@ export function Sidebar() {
         <div
           className={cn(
             "flex items-center h-14 border-b border-white/10 shrink-0 px-3",
-            sidebarOpen ? "justify-between" : "justify-center"
+            sidebarOpen ? "justify-start gap-2.5" : "justify-center"
           )}
         >
-          {sidebarOpen ? (
-            <>
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="h-7 w-7 rounded bg-white flex items-center justify-center shrink-0">
-                  <Terminal className="h-4 w-4 text-black" />
-                </div>
-                <span className="font-bold text-sm text-white tracking-tight truncate">
-                  DataMaster Pro
-                </span>
-              </div>
-              <button
-                onClick={toggleSidebar}
-                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0"
-                title="Collapse sidebar"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={toggleSidebar}
-              className="h-9 w-9 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white transition-colors"
-              title="Expand sidebar"
-            >
-              <Terminal className="h-4 w-4 text-white" />
-            </button>
+          <div className="h-7 w-7 rounded bg-white flex items-center justify-center shrink-0">
+            <Terminal className="h-4 w-4 text-black" />
+          </div>
+          {sidebarOpen && (
+            <span className="font-bold text-sm text-white tracking-tight truncate">
+              DataMaster Pro
+            </span>
           )}
         </div>
 
