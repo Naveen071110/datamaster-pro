@@ -12,6 +12,10 @@ const SchemaDiffPage = lazy(() => import("@/pages/SchemaDiffPage"))
 const SqlFormatterPage = lazy(() => import("@/pages/SqlFormatterPage"))
 const CodeLibraryPage = lazy(() => import("@/pages/CodeLibraryPage"))
 const EtlWorkflowsPage = lazy(() => import("@/pages/EtlWorkflowsPage"))
+const PerformanceAnalyzerPage = lazy(() => import("@/pages/PerformanceAnalyzerPage"))
+const QAPage = lazy(() => import("@/pages/QAPage"))
+const SchemaValidatorPage = lazy(() => import("@/pages/SchemaValidatorPage"))
+const TroubleshootingPage = lazy(() => import("@/pages/TroubleshootingPage"))
 
 function LazyPage({ Component, variant }: { Component: React.ComponentType; variant?: "home" | "full" | "grid" | "list" | "editor" }) {
   return (
@@ -52,6 +56,10 @@ const routes: RouteObject[] = [
       { path: "sql-formatter", element: <LazyPage Component={SqlFormatterPage} variant="editor" /> },
       { path: "code-library", element: <LazyPage Component={CodeLibraryPage} variant="grid" /> },
       { path: "etl-workflows", element: <LazyPage Component={EtlWorkflowsPage} variant="full" /> },
+      { path: "performance-analyzer", element: <LazyPage Component={PerformanceAnalyzerPage} variant="full" /> },
+      { path: "qa", element: <LazyPage Component={QAPage} variant="full" /> },
+      { path: "schema-validator", element: <LazyPage Component={SchemaValidatorPage} variant="editor" /> },
+      { path: "troubleshooting", element: <LazyPage Component={TroubleshootingPage} variant="full" /> },
       { path: "*", element: <NotFound /> },
     ],
   },

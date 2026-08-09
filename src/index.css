@@ -24,6 +24,17 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-muted: 240 4.8% 95.9%;
+    --sidebar-border: 240 5.9% 90%;
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --node-source: 142.1 76.2% 36.3%;
+    --node-transform: 221.2 83.2% 53.3%;
+    --node-load: 271.1 91% 65.1%;
+    --node-error: 0 72.2% 50.6%;
   }
 
   .dark {

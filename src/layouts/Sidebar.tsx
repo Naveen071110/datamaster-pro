@@ -8,6 +8,10 @@ import {
   AlignLeft,
   BookOpen,
   GitBranch,
+  Gauge,
+  HelpCircle,
+  ShieldCheck,
+  Wrench,
   ChevronDown,
   ChevronRight,
   X,
@@ -26,6 +30,10 @@ const iconMap: Record<string, React.ElementType> = {
   AlignLeft,
   BookOpen,
   GitBranch,
+  Gauge,
+  HelpCircle,
+  ShieldCheck,
+  Wrench,
 }
 
 interface NavItem {
@@ -45,11 +53,16 @@ const navItems: NavItem[] = [
   { path: "/sql-formatter", label: "SQL Formatter", icon: "AlignLeft", section: "utilities", order: 5 },
   { path: "/code-library", label: "Snippet Vault", icon: "BookOpen", section: "utilities", order: 6 },
   { path: "/etl-workflows", label: "ETL Architecture DAGs", icon: "GitBranch", section: "utilities", order: 7 },
+  { path: "/performance-analyzer", label: "Performance Analyzer", icon: "Gauge", section: "advanced", order: 8 },
+  { path: "/schema-validator", label: "Schema Validator", icon: "ShieldCheck", section: "advanced", order: 9 },
+  { path: "/qa", label: "Data QA Checks", icon: "HelpCircle", section: "advanced", order: 10 },
+  { path: "/troubleshooting", label: "Troubleshooting Guide", icon: "Wrench", section: "advanced", order: 11 },
 ]
 
 const sectionLabels: Record<string, string> = {
   overview: "Overview",
   utilities: "Micro-SaaS Tools",
+  advanced: "Diagnostics & QA",
 }
 
 export function Sidebar() {
@@ -61,6 +74,7 @@ export function Sidebar() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     overview: true,
     utilities: true,
+    advanced: true,
   })
 
   const toggleSection = (section: string) => {
@@ -89,7 +103,7 @@ export function Sidebar() {
       {/* Mobile Drawer (Left Slide-Over) */}
       <aside
         className={cn(
-          "md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0d0d0d] border-r border-white/10 text-white transition-transform duration-300 ease-in-out flex flex-col shadow-2xl overflow-hidden",
+          "md:hidden fixed inset-y-0 left-0 z-40 w-72 bg-[#0d0d0d] border-r border-white/10 text-white transition-transform duration-300 ease-in-out flex flex-col shadow-2xl overflow-hidden",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

@@ -119,6 +119,6 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
-<p center>
+<p align="center">
   Made with ❤️ for Data Engineers & Data Analysts worldwide.
 </p>
