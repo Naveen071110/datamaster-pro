@@ -35,7 +35,7 @@ export default function AppShell() {
         }`}
       >
         <Header />
-        <main className="min-h-[calc(100vh-3.5rem)] pb-16 md:pb-0">
+        <main className="min-h-[calc(100vh-3.5rem)] pb-16 md:pb-0 overflow-x-hidden max-w-full">
           <Outlet />
         </main>
       </div>
