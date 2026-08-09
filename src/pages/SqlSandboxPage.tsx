@@ -43,8 +43,11 @@ export default function SqlSandboxPage() {
         setDatabaseReady(true)
         setIsInitializing(false)
 
-        // Add initial tab
-        addTab()
+        // Add initial tab if no tabs exist
+        const existingTabs = useAppStore.getState().queryTabs
+        if (existingTabs.length === 0) {
+          addTab()
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Failed to load SQL engine"
         setInitError(msg)

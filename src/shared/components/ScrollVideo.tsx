@@ -26,6 +26,8 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
     let smoothedProgress = 0
     let isSeeking = false
     let hasStarted = false
+    let seekTimeoutId: ReturnType<typeof setTimeout> | null = null
+    let activeSeekEndHandler: (() => void) | null = null
 
     // Fallback timer if video takes > 4s to load (slow mobile network)
     const fallbackTimer = setTimeout(() => {
@@ -58,13 +60,23 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
         if (!isSeeking && Math.abs(video.currentTime - targetTime) > 0.02) {
           isSeeking = true
           video.currentTime = targetTime
+
+          if (activeSeekEndHandler) {
+            video.removeEventListener("seeked", activeSeekEndHandler)
+          }
+
           const onSeekEnd = () => {
             video.removeEventListener("seeked", onSeekEnd)
+            activeSeekEndHandler = null
             isSeeking = false
           }
-          video.addEventListener("seeked", onSeekEnd)
-          // Shorter safety timeout for 120Hz/144Hz high refresh displays
-          setTimeout(() => { isSeeking = false }, 40)
+          activeSeekEndHandler = onSeekEnd
+          video.addEventListener("seeked", onSeekEnd, { once: true })
+
+          if (seekTimeoutId) clearTimeout(seekTimeoutId)
+          seekTimeoutId = setTimeout(() => {
+            isSeeking = false
+          }, 40)
         }
       }
 
@@ -94,6 +106,8 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
 
     return () => {
       clearTimeout(fallbackTimer)
+      if (seekTimeoutId) clearTimeout(seekTimeoutId)
+      if (activeSeekEndHandler) video.removeEventListener("seeked", activeSeekEndHandler)
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("touchmove", handleScroll)
       window.removeEventListener("resize", handleScroll)

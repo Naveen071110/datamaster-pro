@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import type { Bookmark, QueryTab, QueryHistoryEntry } from "@/shared/types/store"
-import { STORAGE_KEYS } from "@/shared/utils/constants"
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9)
@@ -198,7 +197,7 @@ export const useAppStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         bookmarks: state.bookmarks,
-        queryTabs: state.queryTabs,
+        queryTabs: state.queryTabs.map((t) => ({ ...t, isExecuting: false })),
         queryHistory: state.queryHistory,
         activeTabId: state.activeTabId,
         sidebarOpen: state.sidebarOpen,
@@ -206,6 +205,11 @@ export const useAppStore = create<AppStore>()(
         troubleHistory: state.troubleHistory,
         pageVisits: state.pageVisits,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state && Array.isArray(state.queryTabs)) {
+          state.queryTabs = state.queryTabs.map((t) => ({ ...t, isExecuting: false }))
+        }
+      },
     }
   )
 )

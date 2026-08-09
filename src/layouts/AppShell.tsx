@@ -11,7 +11,7 @@ export default function AppShell() {
   const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
   const incrementPageVisit = useAppStore((s) => s.incrementPageVisit)
   const location = useLocation()
-  const isMobile = useMediaQuery("(max-width: 768px)")
+  const isMobile = useMediaQuery("(max-width: 767px)")
 
   // Track page visits
   useEffect(() => {
