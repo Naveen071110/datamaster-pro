@@ -146,16 +146,39 @@
   background-color: #0d0d0d !important;
 }
 
-/* Suppress native mobile video play button overlays & shadow DOM controls */
+/* Suppress ALL native mobile video play button overlays & shadow DOM controls */
+/* WebKit (Safari iOS, Chrome, Samsung Internet) */
 video::-webkit-media-controls,
 video::-webkit-media-controls-start-playback-button,
 video::-webkit-media-controls-play-button,
 video::-webkit-media-controls-panel,
 video::-webkit-media-controls-overlay-play-button,
 video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-timeline {
+video::-webkit-media-controls-timeline,
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display,
+video::-webkit-media-controls-volume-slider,
+video::-webkit-media-controls-mute-button,
+video::-webkit-media-controls-fullscreen-button {
   display: none !important;
   -webkit-appearance: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  overflow: hidden !important;
+}
+
+/* Mozilla / Firefox */
+video::-moz-media-controls,
+video::-moz-media-controls-play-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Generic fallback — hide any video overlay with aggressive specificity */
+video[aria-hidden="true"] {
+  -webkit-media-controls-panel { display: none !important; }
 }
