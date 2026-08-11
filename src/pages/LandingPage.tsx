@@ -16,9 +16,9 @@ import {
   X,
   FileCode2,
 } from "lucide-react"
-import { DataFlowBackground } from "@/shared/components/DataFlowBackground"
+import { ScrollVideo } from "@/shared/components/ScrollVideo"
 
-const DEMO_VIDEO_URL = "/videos/hero-scroll.mp4"
+const VIDEO_URL = "/videos/hero-scroll.mp4"
 
 function useRevealObserver() {
   useEffect(() => {
@@ -49,8 +49,8 @@ export default function LandingPage() {
 
   return (
     <div className="relative bg-[#0a0a0a] text-white min-h-screen font-sans selection:bg-white/20 antialiased overflow-x-hidden">
-      {/* 120 FPS High-Performance Canvas Data Network Background (Zero video lag, zero play buttons) */}
-      <DataFlowBackground />
+      {/* Smooth Scroll-Scrubbed Video Background (Zero play/pause buttons) */}
+      <ScrollVideo videoUrl={VIDEO_URL} />
 
       {/* Main Content Overlay */}
       <div className="relative z-10">
@@ -209,7 +209,7 @@ export default function LandingPage() {
               className="rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-xl px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 flex items-center gap-2.5"
             >
               <Play className="h-4 w-4 fill-white text-white" />
-              <span>Watch Demo Walkthrough</span>
+              <span>Watch Video Walkthrough</span>
             </button>
           </div>
 
@@ -397,7 +397,7 @@ export default function LandingPage() {
               {/* Video Frame */}
               <div className="relative aspect-video w-full bg-black">
                 <video
-                  src={DEMO_VIDEO_URL}
+                  src={VIDEO_URL}
                   controls
                   autoPlay
                   className="w-full h-full object-contain"

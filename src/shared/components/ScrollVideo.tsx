@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface ScrollVideoProps {
   videoUrl: string
@@ -7,151 +7,106 @@ interface ScrollVideoProps {
 
 export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isReady, setIsReady] = useState(false)
-  const [useFallback, setUseFallback] = useState(false)
-  const isMobileRef = useRef(false)
-
-  // Detect mobile once
-  useEffect(() => {
-    isMobileRef.current = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  }, [])
-
-  const startCanvasLoop = useCallback((video: HTMLVideoElement, canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext("2d", { alpha: false })
-    if (!ctx) return () => {}
-
-    let rafId: number
-    const draw = () => {
-      if (video.readyState >= 2 && video.videoWidth > 0) {
-        // Set canvas size to match video (only on first frame or resize)
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-          canvas.width = video.videoWidth
-          canvas.height = video.videoHeight
-        }
-        ctx.drawImage(video, 0, 0)
-      }
-      rafId = requestAnimationFrame(draw)
-    }
-    draw()
-
-    return () => cancelAnimationFrame(rafId)
-  }, [])
 
   useEffect(() => {
     const video = videoRef.current
-    const canvas = canvasRef.current
-    const container = containerRef.current
-    if (!video || !canvas || !container) return
+    if (!video) return
 
-    const isMobile = isMobileRef.current
-
-    // Configure video for silent autoplay loop
+    // Configure video attributes to strictly disable controls & picture-in-picture
     video.muted = true
-    video.loop = true
     video.playsInline = true
     video.setAttribute("webkit-playsinline", "true")
     video.setAttribute("disablePictureInPicture", "true")
     video.setAttribute("disableRemotePlayback", "true")
     video.setAttribute("x-webkit-airplay", "deny")
     video.preload = "auto"
-    // Slow down for a cinematic feel
-    video.playbackRate = 0.6
 
-    let hasStarted = false
-    let cleanupCanvas = () => {}
+    let animationFrameId: number
+    let targetProgress = 0
+    let smoothedProgress = 0
+    let lastSeekTime = 0
 
-    // Fallback timer if video takes > 5s to load
-    const fallbackTimer = setTimeout(() => {
-      if (!hasStarted) {
-        setUseFallback(true)
-      }
-    }, 5000)
-
-    // Scroll-based visual effects (parallax + opacity)
-    let scrollRaf: number
+    // Passive scroll listener for max performance
     const handleScroll = () => {
-      cancelAnimationFrame(scrollRaf)
-      scrollRaf = requestAnimationFrame(() => {
-        const scrollY = window.scrollY
-        const viewH = window.innerHeight
-        // Normalize scroll: 0 at top, 1 at ~2x viewport height
-        const progress = Math.min(scrollY / (viewH * 2), 1)
-
-        // Subtle parallax shift (moves up slightly as user scrolls down)
-        const translateY = progress * -8 // max 8% shift
-        // Fade out gently as user scrolls past hero
-        const opacity = 1 - progress * 0.5 // fades to 50% opacity
-
-        container.style.transform = `translate3d(0, ${translateY}%, 0)`
-        container.style.opacity = String(Math.max(opacity, 0.15))
-      })
+      const scrollElement = document.scrollingElement || document.documentElement
+      const maxScroll = scrollElement.scrollHeight - window.innerHeight
+      if (maxScroll > 0) {
+        targetProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1)
+      }
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
+    window.addEventListener("resize", handleScroll, { passive: true })
     handleScroll()
 
-    const startPlayback = () => {
-      if (hasStarted) return
-      hasStarted = true
-      clearTimeout(fallbackTimer)
+    // Smooth lerp loop with throttled non-blocking video currentTime updates
+    const render = () => {
+      // Exponential smooth lerp
+      const delta = targetProgress - smoothedProgress
+      smoothedProgress += delta * 0.1
 
-      // On mobile: render video frames to canvas (eliminates native controls)
-      if (isMobile) {
-        cleanupCanvas = startCanvasLoop(video, canvas)
+      if (video.duration && !isNaN(video.duration) && video.readyState >= 2) {
+        const targetTime = smoothedProgress * (video.duration - 0.05)
+        const now = performance.now()
+
+        // Seek only if time difference is meaningful (> 0.04s) and at least 35ms since last seek
+        // This prevents CPU/GPU decoder lock and creates butter-smooth scrubbing
+        if (!video.seeking && Math.abs(video.currentTime - targetTime) > 0.04 && now - lastSeekTime > 35) {
+          video.currentTime = targetTime
+          lastSeekTime = now
+        }
       }
 
-      setIsReady(true)
+      animationFrameId = requestAnimationFrame(render)
+    }
 
-      // Start autoplay loop
-      video.play().catch(() => {
-        // Autoplay was blocked — show poster fallback
-        setUseFallback(true)
-      })
+    const onCanPlay = () => {
+      setIsReady(true)
+      render()
     }
 
     if (video.readyState >= 2) {
-      startPlayback()
+      onCanPlay()
     } else {
-      video.addEventListener("loadeddata", startPlayback, { once: true })
-      video.addEventListener("canplaythrough", startPlayback, { once: true })
+      video.addEventListener("loadeddata", onCanPlay, { once: true })
+      video.addEventListener("canplaythrough", onCanPlay, { once: true })
     }
+
+    // Force load
+    video.load()
 
     return () => {
-      clearTimeout(fallbackTimer)
-      cancelAnimationFrame(scrollRaf)
-      cleanupCanvas()
       window.removeEventListener("scroll", handleScroll)
-      video.removeEventListener("loadeddata", startPlayback)
-      video.removeEventListener("canplaythrough", startPlayback)
-      video.pause()
+      window.removeEventListener("resize", handleScroll)
+      video.removeEventListener("loadeddata", onCanPlay)
+      video.removeEventListener("canplaythrough", onCanPlay)
+      cancelAnimationFrame(animationFrameId)
     }
-  }, [videoUrl, startCanvasLoop])
-
-  const isMobile = isMobileRef.current
+  }, [videoUrl])
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-0 bg-[#0a0a0a] overflow-hidden pointer-events-none will-change-transform"
-      style={{ transition: "opacity 0.3s ease-out" }}
+      className="fixed inset-0 z-0 bg-[#0a0a0a] overflow-hidden pointer-events-none select-none"
     >
       {/* Poster Fallback Image */}
-      {posterUrl && useFallback && (
+      {posterUrl && (
         <img
           src={posterUrl}
           alt="Background"
-          className="w-full h-full object-cover opacity-80 pointer-events-none"
+          className={`w-full h-full object-cover pointer-events-none transition-opacity duration-1000 ${
+            isReady ? "opacity-0" : "opacity-80"
+          }`}
         />
       )}
 
-      {/* Video Element — autoplay loop, hidden on mobile */}
+      {/* Hardware-Accelerated Video Element */}
       <video
         ref={videoRef}
         src={videoUrl}
         muted
-        loop
         playsInline
         {...{ "webkit-playsinline": "true" } as Record<string, string>}
         preload="auto"
@@ -160,22 +115,20 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
         tabIndex={-1}
         aria-hidden="true"
         className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000 ${
-          isReady && !isMobile ? "opacity-100" : "opacity-0"
+          isReady ? "opacity-100" : "opacity-0"
         }`}
-        style={isMobile ? { position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", zIndex: -1 } : undefined}
+        style={{
+          pointerEvents: "none",
+          userSelect: "none",
+          WebkitTouchCallout: "none",
+        }}
       />
 
-      {/* Canvas Element — renders video frames on mobile (zero native UI controls) */}
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000 ${
-          isMobile && isReady ? "opacity-100" : "opacity-0"
-        }`}
-      />
+      {/* Invisible Shield Overlay — completely blocks touch/mouse events to prevent play/pause button overlays */}
+      <div className="absolute inset-0 bg-transparent pointer-events-none z-10" />
 
-      {/* Cinematic Vignette Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/60 pointer-events-none" />
+      {/* Vignette Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/70 pointer-events-none z-20" />
     </div>
   )
 }
