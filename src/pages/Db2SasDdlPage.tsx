@@ -29,7 +29,7 @@ export default function Db2SasDdlPage() {
     sas += `LIBNAME DB2LIB DB2 SSID=DB2P SCHEMA=PRODSCHM;\n\n`
     sas += `/* Extract & Summarize DB2 Table via PROC SQL */\n`
     sas += `PROC SQL;\n`
-    sas.concat(`  CREATE TABLE WORK.CUST_SUMMARY AS\n`)
+    sas += `  CREATE TABLE WORK.CUST_SUMMARY AS\n`
     sas += `  SELECT\n    ACCOUNT_NUMBER,\n    CUSTOMER_NAME,\n    SUM(BALANCE_AMOUNT) AS TOTAL_BAL FORMAT=DOLLAR14.2\n`
     sas += `  FROM DB2LIB.${tblName}\n`
     sas += `  WHERE BALANCE_AMOUNT > 0\n`
