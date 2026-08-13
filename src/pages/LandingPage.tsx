@@ -256,7 +256,7 @@ export default function LandingPage() {
               Comprehensive Toolkit
             </div>
             <h2 className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out text-3xl sm:text-5xl font-bold tracking-tight text-white">
-              7 Essential Utilities in One Dashboard
+              11 Essential Tools for Data Engineering & Diagnostics
             </h2>
           </div>
 

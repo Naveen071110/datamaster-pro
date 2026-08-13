@@ -7,7 +7,10 @@ import {
   AlignLeft,
   BookOpen,
   GitBranch,
+  Gauge,
   ShieldCheck,
+  HelpCircle,
+  Wrench,
   ChevronRight,
   Sparkles,
 } from "lucide-react"
@@ -64,6 +67,37 @@ const microSaasTools = [
   },
 ]
 
+const diagnosticsTools = [
+  {
+    path: "/performance-analyzer",
+    icon: Gauge,
+    title: "08. Query Performance Analyzer",
+    description: "Analyze SQL execution plans, spot full table scans or Cartesian joins, and get actionable performance hints.",
+    badge: "Execution Plan Hints"
+  },
+  {
+    path: "/schema-validator",
+    icon: ShieldCheck,
+    title: "09. Schema Validator & Linter",
+    description: "Audit DDL schemas for anti-patterns, missing primary keys, unindexed foreign keys, and bad naming conventions.",
+    badge: "Schema Linter"
+  },
+  {
+    path: "/qa",
+    icon: HelpCircle,
+    title: "10. Data QA Checks & Assertions",
+    description: "Run automated data quality tests, validate column nullability, unique key constraints, and numeric ranges.",
+    badge: "Data Assertion Suite"
+  },
+  {
+    path: "/troubleshooting",
+    icon: Wrench,
+    title: "11. Pipeline & SQL Debugger",
+    description: "Troubleshoot common data engineering errors, SQL execution failures, WASM memory issues, and pipeline bottlenecks.",
+    badge: "Interactive Debugger"
+  },
+]
+
 export default function HomePage() {
   const navigate = useNavigate()
 
@@ -74,7 +108,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md">
             <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-              Developer Workbench
+              Developer Workbench • 11 Active Tools
             </span>
           </div>
 
@@ -90,10 +124,10 @@ export default function HomePage() {
           <h1 className="text-3xl sm:text-5xl font-normal leading-[1.1] tracking-tight text-white drop-shadow-lg">
             Clear. Precise.
             <br />
-            Data Engineering.
+            Data Engineering Suite.
           </h1>
           <p className="text-white/80 text-base sm:text-lg leading-relaxed drop-shadow max-w-2xl">
-            Welcome to DataMaster Pro. Process CSVs, generate multi-dialect DDL, profile dataset quality, and build pipeline DAGs — 100% privately in your browser.
+            Welcome to DataMaster Pro. A complete developer suite with 11 micro-utilities and diagnostic tools — process CSVs, profile dataset quality, analyze query performance, and debug schemas 100% in your browser.
           </p>
         </div>
 
@@ -107,23 +141,23 @@ export default function HomePage() {
             <ChevronRight className="h-4 w-4" />
           </button>
           <button
-            onClick={() => navigate("/ddl-generator")}
+            onClick={() => navigate("/performance-analyzer")}
             className="rounded-full border border-white/25 bg-white/10 backdrop-blur-md px-6 py-3 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors duration-300 inline-flex items-center gap-2"
           >
-            <FileCode className="h-4 w-4 text-white/70" />
-            <span>CSV to DDL Generator</span>
+            <Gauge className="h-4 w-4 text-white/70" />
+            <span>Query Performance Analyzer</span>
           </button>
         </div>
       </div>
 
-      {/* Feature Grid */}
+      {/* Section 1: Micro-SaaS Utilities (7) */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-white">
-            Micro-SaaS Utilities
+          <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-white flex items-center gap-2">
+            <span>Micro-SaaS Utilities</span>
           </h2>
           <span className="font-mono text-xs text-white/50 uppercase tracking-[0.15em]">
-            7 Active Utilities
+            7 Core Tools
           </span>
         </div>
 
@@ -161,6 +195,58 @@ export default function HomePage() {
                 <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-white/50 group-hover:text-white/90">
                   <span>/ OPEN UTILITY</span>
                   <Sparkles className="h-3.5 w-3.5 text-white/40" />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Section 2: Diagnostics & QA Suite (4) */}
+      <div className="space-y-6 pt-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-white flex items-center gap-2">
+            <span>Diagnostics & QA Suite</span>
+          </h2>
+          <span className="font-mono text-xs text-white/50 uppercase tracking-[0.15em]">
+            4 Advanced Tools
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+          {diagnosticsTools.map((tool) => {
+            const Icon = tool.icon
+            return (
+              <div
+                key={tool.path}
+                onClick={() => navigate(tool.path)}
+                className="cursor-pointer group rounded-xl border border-emerald-500/20 bg-emerald-950/10 backdrop-blur-md p-6 hover:bg-emerald-950/20 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-emerald-400/80 border border-emerald-500/20 px-2.5 py-1 rounded bg-emerald-500/5">
+                      {tool.badge}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-emerald-300 transition-colors">
+                      {tool.title}
+                    </h3>
+                    <ChevronRight className="h-4 w-4 text-white/40 group-hover:text-emerald-400 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+
+                  <p className="text-xs leading-relaxed text-white/70 mt-2.5">
+                    {tool.description}
+                  </p>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-emerald-400/60 group-hover:text-emerald-300">
+                  <span>/ OPEN DIAGNOSTIC TOOL</span>
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-400/50" />
                 </div>
               </div>
             )
