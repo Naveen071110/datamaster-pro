@@ -46,6 +46,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: "/app", label: "Dashboard Overview", icon: "LayoutDashboard", section: "overview", order: 0 },
+  
+  // Micro-SaaS Tools
   { path: "/sql-sandbox", label: "CSV & SQL Sandbox", icon: "Terminal", section: "utilities", order: 1 },
   { path: "/ddl-generator", label: "CSV to DDL Generator", icon: "FileCode", section: "utilities", order: 2 },
   { path: "/data-profiler", label: "Data Profiler", icon: "BarChart3", section: "utilities", order: 3 },
@@ -54,25 +56,26 @@ const navItems: NavItem[] = [
   { path: "/code-library", label: "Snippet Vault", icon: "BookOpen", section: "utilities", order: 6 },
   { path: "/etl-workflows", label: "ETL Architecture DAGs", icon: "GitBranch", section: "utilities", order: 7 },
   
-  // Informatica & Mainframe Enterprise Suite
-  { path: "/informatica-mapping-to-sql", label: "Informatica XML to SQL", icon: "FileCode", section: "enterprise", order: 8 },
-  { path: "/informatica-expression-transpiler", label: "Informatica Expression Transpiler", icon: "Terminal", section: "enterprise", order: 9 },
-  { path: "/cobol-copybook-converter", label: "COBOL to DB2 & SAS", icon: "BookOpen", section: "enterprise", order: 10 },
-  { path: "/db2-sas-ddl-generator", label: "DB2 Mainframe & SAS DDL", icon: "GitCompare", section: "enterprise", order: 11 },
-  { path: "/aqt-sql-transpiler", label: "AQT & DB2 SQL Transpiler", icon: "GitBranch", section: "enterprise", order: 12 },
-  { path: "/db2-procedure-to-pyspark", label: "DB2 Procedure to PySpark", icon: "FileCode", section: "enterprise", order: 13 },
-  { path: "/enterprise-sql-workbench", label: "Window & MERGE Workbench", icon: "Terminal", section: "enterprise", order: 14 },
+  // Informatica Suite (Standalone Dedicated Section)
+  { path: "/informatica-mapping-to-sql", label: "Informatica XML to SQL", icon: "FileCode", section: "informatica", order: 8 },
+  { path: "/informatica-expression-transpiler", label: "Informatica Expression Transpiler", icon: "Terminal", section: "informatica", order: 9 },
 
-  { path: "/performance-analyzer", label: "Performance Analyzer", icon: "Gauge", section: "advanced", order: 15 },
-  { path: "/schema-validator", label: "Schema Validator", icon: "ShieldCheck", section: "advanced", order: 16 },
-  { path: "/qa", label: "Data QA Checks", icon: "HelpCircle", section: "advanced", order: 17 },
-  { path: "/troubleshooting", label: "Troubleshooting Guide", icon: "Wrench", section: "advanced", order: 18 },
+  // Diagnostics & QA (Includes Enterprise DB2, COBOL, AQT, SAS & SQL QA Tools)
+  { path: "/performance-analyzer", label: "Performance Analyzer", icon: "Gauge", section: "advanced", order: 10 },
+  { path: "/schema-validator", label: "Schema Validator", icon: "ShieldCheck", section: "advanced", order: 11 },
+  { path: "/qa", label: "Data QA Checks", icon: "HelpCircle", section: "advanced", order: 12 },
+  { path: "/troubleshooting", label: "Troubleshooting Guide", icon: "Wrench", section: "advanced", order: 13 },
+  { path: "/db2-sas-ddl-generator", label: "DB2 & SAS Parameter Resolver", icon: "GitCompare", section: "advanced", order: 14 },
+  { path: "/cobol-copybook-converter", label: "COBOL to DB2 & SAS QA", icon: "BookOpen", section: "advanced", order: 15 },
+  { path: "/aqt-sql-transpiler", label: "AQT & DB2 SQL Transpiler", icon: "GitBranch", section: "advanced", order: 16 },
+  { path: "/db2-procedure-to-pyspark", label: "DB2 Procedure to PySpark", icon: "FileCode", section: "advanced", order: 17 },
+  { path: "/enterprise-sql-workbench", label: "Window & MERGE Workbench", icon: "Terminal", section: "advanced", order: 18 },
 ]
 
 const sectionLabels: Record<string, string> = {
   overview: "Overview",
   utilities: "Micro-SaaS Tools",
-  enterprise: "Informatica & Mainframe",
+  informatica: "Informatica Suite",
   advanced: "Diagnostics & QA",
 }
 
