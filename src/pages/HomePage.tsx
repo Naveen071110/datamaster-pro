@@ -16,6 +16,7 @@ import {
   Code2,
   Database,
   FileCode2,
+  DollarSign,
 } from "lucide-react"
 
 const microSaasTools = [
@@ -41,30 +42,44 @@ const microSaasTools = [
     badge: "Automated Diagnostics"
   },
   {
+    path: "/test-data-generator",
+    icon: Sparkles,
+    title: "04. Synthetic Mock Data Generator",
+    description: "Generate high-speed, realistic relational test datasets (Users, Orders, Companies, Ledgers, Logs) with CSV, JSON & SQL exports.",
+    badge: "Faker & Mock Engine"
+  },
+  {
+    path: "/currency-converter",
+    icon: DollarSign,
+    title: "05. Live FX Rates & Currency Normalizer",
+    description: "Live foreign exchange rates across 30+ global currencies. Real-time conversion & SQL `dim_exchange_rates` DDL generation.",
+    badge: "Live ECB Market Feed"
+  },
+  {
     path: "/schema-diff",
     icon: GitCompare,
-    title: "04. Schema Diff & Drift Inspector",
+    title: "06. Schema Diff & Drift Inspector",
     description: "Side-by-side DDL schema comparator highlighting added (+), deleted (-), and modified (~) columns with ALTER TABLE SQL.",
     badge: "Auto Migration SQL"
   },
   {
     path: "/sql-formatter",
     icon: AlignLeft,
-    title: "05. SQL Formatter & Beautifier",
+    title: "07. SQL Formatter & Beautifier",
     description: "Standardize raw queries, align clauses, and format keyword casing for clean, readable production SQL.",
     badge: "Syntax Beautifier"
   },
   {
     path: "/code-library",
     icon: BookOpen,
-    title: "06. Snippet Vault",
+    title: "08. Snippet Vault",
     description: "50+ production-tested code snippets for SQL Window Functions, CTEs, Python ETL, PySpark, and Airflow.",
     badge: "50+ Snippets"
   },
   {
     path: "/etl-workflows",
     icon: GitBranch,
-    title: "07. ETL Architecture DAG Builder",
+    title: "09. ETL Architecture DAG Builder",
     description: "Visual ReactFlow canvas to design, document, and visualize complex data pipeline workflow DAG architectures.",
     badge: "Visual DAG Canvas"
   },
@@ -74,14 +89,14 @@ const informaticaTools = [
   {
     path: "/informatica-mapping-to-sql",
     icon: FileCode2,
-    title: "08. Informatica XML Mapping to SQL Converter",
+    title: "10. Informatica XML Mapping to SQL Converter",
     description: "Convert Informatica PowerCenter mapping XML files into precise, executable SQL CTE queries and bind parameter files.",
     badge: "PowerCenter & IICS"
   },
   {
     path: "/informatica-expression-transpiler",
     icon: Code2,
-    title: "09. Informatica Expression Transpiler",
+    title: "11. Informatica Expression Transpiler",
     description: "Validate and convert complex Informatica transformation functions (IIF, DECODE, ISNULL, ADD_TO_DATE) into database SQL.",
     badge: "Expression Validator"
   },
@@ -91,49 +106,49 @@ const diagnosticsTools = [
   {
     path: "/performance-analyzer",
     icon: Gauge,
-    title: "10. Query Performance Analyzer",
+    title: "12. Query Performance Analyzer",
     description: "Analyze SQL execution plans, spot full table scans or Cartesian joins, and get actionable performance hints.",
     badge: "Execution Plan Hints"
   },
   {
     path: "/schema-validator",
     icon: ShieldCheck,
-    title: "11. Schema Validator & Linter",
+    title: "13. Schema Validator & Linter",
     description: "Audit DDL schemas for anti-patterns, missing primary keys, unindexed foreign keys, and bad naming conventions.",
     badge: "Schema Linter"
   },
   {
     path: "/qa",
     icon: HelpCircle,
-    title: "12. Data QA Checks & Assertions",
+    title: "14. Data QA Checks & Assertions",
     description: "Run automated data quality tests, validate column nullability, unique key constraints, and numeric ranges.",
     badge: "Data Assertion Suite"
   },
   {
     path: "/troubleshooting",
     icon: Wrench,
-    title: "13. Pipeline & SQL Debugger",
+    title: "15. Pipeline & SQL Debugger",
     description: "Troubleshoot common data engineering errors, SQL execution failures, WASM memory issues, and pipeline bottlenecks.",
     badge: "Interactive Debugger"
   },
   {
     path: "/db2-sas-ddl-generator",
     icon: Database,
-    title: "14. DB2 & SAS Parameter Resolver",
+    title: "16. DB2 & SAS Parameter Resolver",
     description: "Substitute DB2 host variables (:dept_no) and SAS macro variables (&START_DT) with parameter file values into runnable queries.",
     badge: "Host Variable Resolver"
   },
   {
     path: "/aqt-sql-transpiler",
     icon: GitCompare,
-    title: "15. AQT & DB2 SQL Transpiler",
+    title: "17. AQT & DB2 SQL Transpiler",
     description: "Convert Advanced Query Tool (AQT) scripts and DB2 syntax (FETCH FIRST, WITH RR, CURRENT DATE) to Snowflake/Postgres.",
     badge: "AQT Transpiler"
   },
   {
     path: "/db2-procedure-to-pyspark",
     icon: FileCode,
-    title: "16. DB2 Procedure to PySpark Converter",
+    title: "18. DB2 Procedure to PySpark Converter",
     description: "Transpile legacy DB2 SQL PL stored procedures and Oracle PL/SQL blocks into modern Databricks PySpark DataFrame code.",
     badge: "Spark Migration"
   },
@@ -149,7 +164,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md">
             <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-              Developer Workbench • 16 Active Tools
+              Developer Workbench • 18 Active Tools
             </span>
           </div>
 
@@ -168,37 +183,37 @@ export default function HomePage() {
             Data Engineering Suite.
           </h1>
           <p className="text-white/80 text-base sm:text-lg leading-relaxed drop-shadow max-w-2xl">
-            Welcome to DataMaster Pro. A complete 16-tool workbench featuring a dedicated Informatica Suite, Micro-SaaS Utilities, and Diagnostics & QA tools.
+            Welcome to DataMaster Pro. A complete 18-tool workbench featuring a dedicated Informatica Suite, Micro-SaaS Utilities, and Diagnostics & QA tools.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 pt-2">
           <button
-            onClick={() => navigate("/informatica-mapping-to-sql")}
+            onClick={() => navigate("/test-data-generator")}
             className="rounded-full bg-white px-6 py-3 text-xs sm:text-sm font-medium text-black hover:bg-white/85 transition-colors duration-300 inline-flex items-center gap-2 shadow-lg"
           >
-            <FileCode2 className="h-4 w-4" />
-            <span>Launch Informatica Suite</span>
+            <Sparkles className="h-4 w-4" />
+            <span>Generate Mock Data</span>
             <ChevronRight className="h-4 w-4" />
           </button>
           <button
-            onClick={() => navigate("/qa")}
+            onClick={() => navigate("/currency-converter")}
             className="rounded-full border border-white/25 bg-white/10 backdrop-blur-md px-6 py-3 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors duration-300 inline-flex items-center gap-2"
           >
-            <HelpCircle className="h-4 w-4 text-white/70" />
-            <span>Diagnostics & QA Suite</span>
+            <DollarSign className="h-4 w-4 text-sky-400" />
+            <span>Live FX & Rates</span>
           </button>
         </div>
       </div>
 
-      {/* Section 1: Micro-SaaS Utilities (7) */}
+      {/* Section 1: Micro-SaaS Utilities (9 Tools) */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-white">
             Micro-SaaS Utilities
           </h2>
           <span className="font-mono text-xs text-white/50 uppercase tracking-[0.15em]">
-            7 Core Tools
+            9 Core Tools
           </span>
         </div>
 

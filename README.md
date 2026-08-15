@@ -1,11 +1,11 @@
 # ⚡ DataMaster Pro — Privacy-First Data Engineering Utility Suite
 
-![DataMaster Pro Banner](https://img.shields.io/badge/DataMaster_Pro-16_Tool_Developer_Workbench-emerald?style=for-the-badge&logo=sqlite&logoColor=white)
+![DataMaster Pro Banner](https://img.shields.io/badge/DataMaster_Pro-18_Tool_Developer_Workbench-emerald?style=for-the-badge&logo=sqlite&logoColor=white)
 ![100% Client-Side](https://img.shields.io/badge/Privacy-100%25_In--Browser_WASM-blue?style=for-the-badge&logo=webassembly&logoColor=white)
 ![Deployment Status](https://img.shields.io/badge/Render-Live_Static_Site-success?style=for-the-badge&logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)
 
-> **DataMaster Pro** is a modern, privacy-first, 100% client-side developer utility suite built for **Data Engineers, Data Analysts, Informatica Developers, and Database Professionals**. Execute SQL against raw CSVs in WebAssembly, generate multi-dialect DDL schemas, convert Informatica PowerCenter/IICS mappings to SQL, transpile AQT/DB2 scripts, profile datasets, diff database schemas, and debug production data pipelines — entirely inside your browser. Zero server uploads, no data storage, zero privacy risks.
+> **DataMaster Pro** is a modern, privacy-first, 100% client-side developer utility suite built for **Data Engineers, Data Analysts, Informatica Developers, and Database Professionals**. Execute SQL against raw CSVs in WebAssembly, generate multi-dialect DDL schemas, synthesize mock test data, convert Informatica PowerCenter/IICS mappings to SQL, transpile AQT/DB2 scripts, normalize live currency exchange rates, profile datasets, diff database schemas, and debug production data pipelines — entirely inside your browser. Zero server uploads, no data storage, zero privacy risks.
 
 ---
 
@@ -16,18 +16,20 @@
 
 ---
 
-## 🚀 The 16 Complete Developer Utilities
+## 🚀 The 18 Complete Developer Utilities
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                              DATAMASTER PRO                                    │
-│          The 16-Tool Privacy-First Workbench for Data Engineers                │
+│          The 18-Tool Privacy-First Workbench for Data Engineers                │
 └────────────────────────────────────────────────────────────────────────────────┘
   │
-  ├── 📊 1. Micro-SaaS Utilities Suite (7 Tools)
+  ├── 📊 1. Micro-SaaS Utilities Suite (9 Tools)
   │    ├── CSV & SQL Sandbox (SQLite WebAssembly Engine)
-  │    ├── Multi-Dialect DDL Generator (Postgres, Snowflake, BigQuery, DB2, SQLite)
+  │    ├── Multi-Dialect DDL Generator (Postgres, Snowflake, BigQuery, MySQL, SQLite)
   │    ├── Data Profiler & Quality Health Inspector
+  │    ├── Synthetic Mock Data Generator (Users, Orders, Companies, Ledgers, Logs)
+  │    ├── Live FX Rates & Currency Normalizer (ECB Reference Rates & dim_exchange_rates DDL)
   │    ├── Schema Diff & Drift Inspector (Auto ALTER TABLE Migration SQL)
   │    ├── SQL Formatter & Query Beautifier
   │    ├── Snippet Vault (50+ SQL, PySpark, Airflow, DuckDB, Polars, dbt)
@@ -47,12 +49,14 @@
        └── DB2 & Oracle Stored Procedure to PySpark Converter
 ```
 
-### 1. Micro-SaaS Utilities (7 Tools)
+### 1. Micro-SaaS Utilities (9 Tools)
 | Utility | Route | Key Capabilities |
 | :--- | :--- | :--- |
 | **CSV & SQL Sandbox** | `/sql-sandbox` | Upload custom `.csv` files or query mock datasets in-browser using SQLite WASM. Features Monaco Editor, schema explorer, and one-click export to CSV & JSON. |
 | **CSV to DDL Generator** | `/ddl-generator` | Converts CSV rows or JSON objects into `CREATE TABLE` DDL & `INSERT INTO` statements across 5 database dialects (**PostgreSQL, Snowflake, BigQuery, MySQL, SQLite**). |
 | **Data Profiler** | `/data-profiler` | Automated statistical health inspector calculating NULL rates, unique cardinalities, min/max/mean distributions, and flagging data quality alerts. |
+| **Synthetic Mock Data Generator** | `/test-data-generator` | Generates realistic synthetic datasets (Users, Orders, Companies, Financial Ledgers, Server Logs) with instant export to CSV, JSON, or SQL inserts. |
+| **Live FX Rates & Currency Normalizer** | `/currency-converter` | Real-time foreign exchange converter across 30+ currencies with automated `dim_exchange_rates` DDL generation for ETL pipelines. |
 | **Schema Diff Inspector** | `/schema-diff` | Side-by-side DDL schema comparator highlighting added (`+`), removed (`-`), and modified (`~`) columns + generating `ALTER TABLE` migration scripts. |
 | **SQL Formatter** | `/sql-formatter` | Standardizes unformatted SQL statements, aligns query clauses, and configures keyword casing (UPPERCASE vs lowercase) with custom indentation. |
 | **Snippet Vault** | `/code-library` | Searchable repository of 50+ production-tested code snippets covering SQL Window Functions, CTEs, Python ETL, PySpark DataFrames, and Airflow DAGs. |

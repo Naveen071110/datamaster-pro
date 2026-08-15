@@ -8,6 +8,8 @@ const HomePage = lazy(() => import("@/pages/HomePage"))
 const SqlSandboxPage = lazy(() => import("@/pages/SqlSandboxPage"))
 const DdlGeneratorPage = lazy(() => import("@/pages/DdlGeneratorPage"))
 const DataProfilerPage = lazy(() => import("@/pages/DataProfilerPage"))
+const TestDataGeneratorPage = lazy(() => import("@/pages/TestDataGeneratorPage"))
+const CurrencyRatesPage = lazy(() => import("@/pages/CurrencyRatesPage"))
 const SchemaDiffPage = lazy(() => import("@/pages/SchemaDiffPage"))
 const SqlFormatterPage = lazy(() => import("@/pages/SqlFormatterPage"))
 const CodeLibraryPage = lazy(() => import("@/pages/CodeLibraryPage"))
@@ -59,6 +61,8 @@ const routes: RouteObject[] = [
       { path: "sql-sandbox", element: <LazyPage Component={SqlSandboxPage} variant="editor" /> },
       { path: "ddl-generator", element: <LazyPage Component={DdlGeneratorPage} variant="editor" /> },
       { path: "data-profiler", element: <LazyPage Component={DataProfilerPage} variant="full" /> },
+      { path: "test-data-generator", element: <LazyPage Component={TestDataGeneratorPage} variant="full" /> },
+      { path: "currency-converter", element: <LazyPage Component={CurrencyRatesPage} variant="full" /> },
       { path: "schema-diff", element: <LazyPage Component={SchemaDiffPage} variant="editor" /> },
       { path: "sql-formatter", element: <LazyPage Component={SqlFormatterPage} variant="editor" /> },
       { path: "code-library", element: <LazyPage Component={CodeLibraryPage} variant="grid" /> },
