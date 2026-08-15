@@ -1,11 +1,11 @@
 # ⚡ DataMaster Pro — Privacy-First Data Engineering Utility Suite
 
-![DataMaster Pro Banner](https://img.shields.io/badge/DataMaster_Pro-18_Tool_Developer_Workbench-emerald?style=for-the-badge&logo=sqlite&logoColor=white)
+![DataMaster Pro Banner](https://img.shields.io/badge/DataMaster_Pro-16_Tool_Developer_Workbench-emerald?style=for-the-badge&logo=sqlite&logoColor=white)
 ![100% Client-Side](https://img.shields.io/badge/Privacy-100%25_In--Browser_WASM-blue?style=for-the-badge&logo=webassembly&logoColor=white)
 ![Deployment Status](https://img.shields.io/badge/Render-Live_Static_Site-success?style=for-the-badge&logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)
 
-> **DataMaster Pro** is a modern, privacy-first, 100% client-side developer utility suite built for **Data Engineers, Data Analysts, Informatica Developers, and Mainframe DB2 Professionals**. Execute SQL against raw CSVs in WebAssembly, generate multi-dialect DDL schemas, convert Informatica PowerCenter/IICS mappings to SQL, parse COBOL Copybooks, transpile AQT/DB2 scripts, profile datasets, diff database schemas, and debug production data pipelines — entirely inside your browser. Zero server uploads, no data storage, zero privacy risks.
+> **DataMaster Pro** is a modern, privacy-first, 100% client-side developer utility suite built for **Data Engineers, Data Analysts, Informatica Developers, and Database Professionals**. Execute SQL against raw CSVs in WebAssembly, generate multi-dialect DDL schemas, convert Informatica PowerCenter/IICS mappings to SQL, transpile AQT/DB2 scripts, profile datasets, diff database schemas, and debug production data pipelines — entirely inside your browser. Zero server uploads, no data storage, zero privacy risks.
 
 ---
 
@@ -16,12 +16,12 @@
 
 ---
 
-## 🚀 The 18 Complete Developer Utilities
+## 🚀 The 16 Complete Developer Utilities
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │                              DATAMASTER PRO                                    │
-│          The 18-Tool Privacy-First Workbench for Data Engineers                │
+│          The 16-Tool Privacy-First Workbench for Data Engineers                │
 └────────────────────────────────────────────────────────────────────────────────┘
   │
   ├── 📊 1. Micro-SaaS Utilities Suite (7 Tools)
@@ -33,20 +33,18 @@
   │    ├── Snippet Vault (50+ SQL, PySpark, Airflow, DuckDB, Polars, dbt)
   │    └── ETL Architecture DAG Builder (Visual ReactFlow Canvas)
   │
-  ├── 🏛️ 2. Informatica, DB2 & Mainframe Enterprise Suite (7 Tools)
+  ├── 🔷 2. Informatica Suite (2 Tools)
   │    ├── Informatica XML Mapping to SQL Converter (PowerCenter & IICS)
-  │    ├── Informatica Expression Function Transpiler & Validator
-  │    ├── COBOL Copybook to DB2 DDL & SAS Data Step Converter
-  │    ├── IBM DB2 Mainframe DDL & SAS Script Synthesizer
-  │    ├── AQT & DB2 Mainframe to Snowflake / Postgres Transpiler
-  │    ├── DB2 & Oracle Stored Procedure to PySpark Converter
-  │    └── Enterprise Window Function & MERGE (Upsert) Workbench
+  │    └── Informatica Expression Function Transpiler & Validator
   │
-  └── 🔍 3. Diagnostics & QA Suite (4 Tools)
+  └── 🔍 3. Diagnostics & QA Suite (7 Tools)
        ├── Query Performance Analyzer & Execution Plan Hints
        ├── Schema Validator & Anti-Pattern Linter
        ├── Data QA Checks & Automated Assertion Suite
-       └── Pipeline & SQL Debugger / Troubleshooting Guide
+       ├── Pipeline & SQL Debugger / Troubleshooting Guide
+       ├── DB2 & SAS Parameter File Resolver
+       ├── AQT & DB2 Mainframe to Snowflake / Postgres Transpiler
+       └── DB2 & Oracle Stored Procedure to PySpark Converter
 ```
 
 ### 1. Micro-SaaS Utilities (7 Tools)
@@ -62,26 +60,24 @@
 
 ---
 
-### 2. Informatica, DB2 & Mainframe Enterprise Suite (7 Tools)
+### 2. Informatica Suite (2 Tools)
 | Utility | Route | Key Capabilities |
 | :--- | :--- | :--- |
-| **Informatica XML to SQL** | `/informatica-mapping-to-sql` | Converts Informatica PowerCenter mapping `.xml` exports into precise, testable SQL CTE queries to validate data results before loading. |
+| **Informatica XML to SQL** | `/informatica-mapping-to-sql` | Converts Informatica PowerCenter mapping `.xml` exports into precise, testable SQL CTE queries and binds parameter files (`.par` / `$$PARAM`) into executable SQL. |
 | **Informatica Expression Transpiler** | `/informatica-expression-transpiler` | Validates and transpiles complex Informatica functions (`IIF`, `DECODE`, `ISNULL`, `ADD_TO_DATE`) into native database SQL. |
-| **COBOL Copybook Converter** | `/cobol-copybook-converter` | Parses COBOL Copybook `PIC` definitions into IBM DB2 z/OS DDL tables and SAS `DATA` step import scripts. |
-| **IBM DB2 & SAS DDL Synthesizer** | `/db2-sas-ddl-generator` | Constructs DB2 z/OS Storage Groups, Tablespaces (`LOCKSIZE ROW`, `COMPRESS YES`), EBCDIC DDLs, and SAS `PROC SQL` extract scripts. |
-| **AQT & DB2 SQL Transpiler** | `/aqt-sql-transpiler` | Translates Advanced Query Tool (AQT) scripts and DB2 syntax (`FETCH FIRST`, `WITH RR`, `CURRENT DATE - YEARS`) into Snowflake, PostgreSQL, or BigQuery. |
-| **DB2 Procedure to PySpark** | `/db2-procedure-to-pyspark` | Converts DB2 SQL PL stored procedures and Oracle PL/SQL blocks into Databricks PySpark DataFrame scripts. |
-| **Enterprise Window & MERGE** | `/enterprise-sql-workbench` | Generates ANSI `MERGE INTO` (Upsert) queries and complex analytical Window Functions (`ROW_NUMBER`, `LAG/LEAD`, `SUM() OVER (...)`). |
 
 ---
 
-### 3. Diagnostics & QA Suite (4 Tools)
+### 3. Diagnostics & QA Suite (7 Tools)
 | Utility | Route | Key Capabilities |
 | :--- | :--- | :--- |
 | **Query Performance Analyzer** | `/performance-analyzer` | Evaluates SQL execution plans, flags full table scans or Cartesian joins, and suggests performance optimizations. |
 | **Schema Validator** | `/schema-validator` | Audits DDL schemas for anti-patterns, missing primary keys, unindexed foreign keys, and reserved column names. |
 | **Data QA Assertion Suite** | `/qa` | Executes automated quality tests, column nullability validation, unique key constraint checks, and numeric range assertions. |
 | **Pipeline Debugger** | `/troubleshooting` | Step-by-step diagnostic guide for WASM memory limits, query syntax errors, schema drift, and pipeline bottlenecks. |
+| **DB2 & SAS Parameter Resolver** | `/db2-sas-ddl-generator` | Replaces DB2 host variables (`:param`) and SAS macros (`&macro`) with parameter file values into runnable production queries. |
+| **AQT & DB2 SQL Transpiler** | `/aqt-sql-transpiler` | Translates Advanced Query Tool (AQT) scripts and DB2 syntax (`FETCH FIRST`, `WITH RR`, `CURRENT DATE - YEARS`) into Snowflake, PostgreSQL, or BigQuery. |
+| **DB2 Procedure to PySpark** | `/db2-procedure-to-pyspark` | Converts DB2 SQL PL stored procedures and Oracle PL/SQL blocks into Databricks PySpark DataFrame scripts. |
 
 ---
 
@@ -140,5 +136,5 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 ---
 
 <p align="center">
-  Made with ❤️ for Data Engineers, Data Analysts, Informatica & DB2 Mainframe Professionals worldwide.
+  Made with ❤️ for Data Engineers, Data Analysts, Informatica & Database Professionals worldwide.
 </p>

@@ -17,14 +17,12 @@ const QAPage = lazy(() => import("@/pages/QAPage"))
 const SchemaValidatorPage = lazy(() => import("@/pages/SchemaValidatorPage"))
 const TroubleshootingPage = lazy(() => import("@/pages/TroubleshootingPage"))
 
-// Informatica, DB2 & Mainframe Enterprise Tools
+// Informatica, DB2 & Enterprise Tools
 const InformaticaXmlToSqlPage = lazy(() => import("@/pages/InformaticaXmlToSqlPage"))
 const InformaticaExpressionTranspilerPage = lazy(() => import("@/pages/InformaticaExpressionTranspilerPage"))
-const CobolCopybookConverterPage = lazy(() => import("@/pages/CobolCopybookConverterPage"))
 const Db2SasDdlPage = lazy(() => import("@/pages/Db2SasDdlPage"))
 const AqtSqlTranspilerPage = lazy(() => import("@/pages/AqtSqlTranspilerPage"))
 const ProcedureToPysparkPage = lazy(() => import("@/pages/ProcedureToPysparkPage"))
-const EnterpriseSqlWorkbenchPage = lazy(() => import("@/pages/EnterpriseSqlWorkbenchPage"))
 
 function LazyPage({ Component, variant }: { Component: React.ComponentType; variant?: "home" | "full" | "grid" | "list" | "editor" }) {
   return (
@@ -70,14 +68,12 @@ const routes: RouteObject[] = [
       { path: "schema-validator", element: <LazyPage Component={SchemaValidatorPage} variant="editor" /> },
       { path: "troubleshooting", element: <LazyPage Component={TroubleshootingPage} variant="full" /> },
 
-      // Informatica, DB2 & Mainframe Enterprise Tools
+      // Informatica, DB2 & Enterprise Tools
       { path: "informatica-mapping-to-sql", element: <LazyPage Component={InformaticaXmlToSqlPage} variant="editor" /> },
       { path: "informatica-expression-transpiler", element: <LazyPage Component={InformaticaExpressionTranspilerPage} variant="editor" /> },
-      { path: "cobol-copybook-converter", element: <LazyPage Component={CobolCopybookConverterPage} variant="editor" /> },
       { path: "db2-sas-ddl-generator", element: <LazyPage Component={Db2SasDdlPage} variant="editor" /> },
       { path: "aqt-sql-transpiler", element: <LazyPage Component={AqtSqlTranspilerPage} variant="editor" /> },
       { path: "db2-procedure-to-pyspark", element: <LazyPage Component={ProcedureToPysparkPage} variant="editor" /> },
-      { path: "enterprise-sql-workbench", element: <LazyPage Component={EnterpriseSqlWorkbenchPage} variant="editor" /> },
 
       { path: "*", element: <NotFound /> },
     ],

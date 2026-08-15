@@ -75,7 +75,7 @@ const informaticaTools = [
     path: "/informatica-mapping-to-sql",
     icon: FileCode2,
     title: "08. Informatica XML Mapping to SQL Converter",
-    description: "Convert Informatica PowerCenter mapping XML files into precise, executable SQL CTE queries to test target data loads.",
+    description: "Convert Informatica PowerCenter mapping XML files into precise, executable SQL CTE queries and bind parameter files.",
     badge: "PowerCenter & IICS"
   },
   {
@@ -124,32 +124,18 @@ const diagnosticsTools = [
     badge: "Host Variable Resolver"
   },
   {
-    path: "/cobol-copybook-converter",
-    icon: BookOpen,
-    title: "15. COBOL Copybook to DB2 & SAS QA",
-    description: "Parse COBOL Copybook PIC definitions into IBM DB2 DDL tables and SAS DATA step import scripts for schema QA.",
-    badge: "Copybook QA"
-  },
-  {
     path: "/aqt-sql-transpiler",
     icon: GitCompare,
-    title: "16. AQT & DB2 SQL Transpiler",
+    title: "15. AQT & DB2 SQL Transpiler",
     description: "Convert Advanced Query Tool (AQT) scripts and DB2 syntax (FETCH FIRST, WITH RR, CURRENT DATE) to Snowflake/Postgres.",
     badge: "AQT Transpiler"
   },
   {
     path: "/db2-procedure-to-pyspark",
     icon: FileCode,
-    title: "17. DB2 Procedure to PySpark Converter",
+    title: "16. DB2 Procedure to PySpark Converter",
     description: "Transpile legacy DB2 SQL PL stored procedures and Oracle PL/SQL blocks into modern Databricks PySpark DataFrame code.",
     badge: "Spark Migration"
-  },
-  {
-    path: "/enterprise-sql-workbench",
-    icon: Terminal,
-    title: "18. Enterprise Window & MERGE Workbench",
-    description: "Synthesize complex analytical Window Functions (ROW_NUMBER, LAG/LEAD, Running Totals) and ANSI MERGE (Upsert) SQL.",
-    badge: "Advanced Enterprise SQL"
   },
 ]
 
@@ -163,7 +149,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md">
             <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-              Developer Workbench • 18 Active Tools
+              Developer Workbench • 16 Active Tools
             </span>
           </div>
 
@@ -182,7 +168,7 @@ export default function HomePage() {
             Data Engineering Suite.
           </h1>
           <p className="text-white/80 text-base sm:text-lg leading-relaxed drop-shadow max-w-2xl">
-            Welcome to DataMaster Pro. A complete 18-tool workbench featuring a dedicated Informatica Suite, Micro-SaaS Utilities, and Diagnostics & QA tools.
+            Welcome to DataMaster Pro. A complete 16-tool workbench featuring a dedicated Informatica Suite, Micro-SaaS Utilities, and Diagnostics & QA tools.
           </p>
         </div>
 
@@ -309,14 +295,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Section 3: Diagnostics & QA Suite (9 Tools) */}
+      {/* Section 3: Diagnostics & QA Suite (7 Tools) */}
       <div className="space-y-6 pt-4">
         <div className="flex items-center justify-between border-b border-emerald-500/20 pb-4">
           <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-emerald-400 flex items-center gap-2">
             <span>Diagnostics & QA Suite</span>
           </h2>
           <span className="font-mono text-xs text-emerald-400/60 uppercase tracking-[0.15em]">
-            9 Quality & Diagnostic Tools
+            7 Quality & Diagnostic Tools
           </span>
         </div>
 
