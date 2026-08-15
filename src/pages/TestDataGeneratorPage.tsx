@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Sparkles,
@@ -15,26 +15,26 @@ import {
   Sliders,
   Play,
   Layers,
+  Globe,
+  ShoppingBag,
+  Users,
+  Building,
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
 import Editor from "@monaco-editor/react"
 
+type DataSource = "local_generator" | "dummyjson" | "randomuser" | "countries"
 type EntityType = "users" | "orders" | "companies" | "financial_ledger" | "server_logs"
-
-interface FieldDef {
-  name: string
-  type: string
-  enabled: boolean
-}
+type DummyResourceType = "products" | "carts" | "recipes" | "posts"
 
 // In-browser high-speed generator dictionaries for guaranteed 100% uptime & zero network lag
 const FIRST_NAMES = ["James", "Emma", "Liam", "Olivia", "Noah", "Sophia", "Lucas", "Ava", "Mason", "Isabella", "Ethan", "Mia", "Oliver", "Harper", "Aiden", "Evelyn", "Priya", "Rahul", "Chen", "Mei", "Carlos", "Elena", "Yuki", "Kenji", "Fatima", "Tariq"]
 const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Patel", "Sharma", "Wang", "Zhang", "Tanaka", "Sato", "Al-Mansoor", "Khan", "Dubois", "Müller"]
 const DOMAINS = ["example.com", "techcorp.io", "globalfinance.org", "enterprise.net", "datalake.dev", "cloudscale.ai"]
 const CITIES = ["New York", "San Francisco", "London", "Tokyo", "Berlin", "Singapore", "Toronto", "Sydney", "Mumbai", "Paris", "Austin", "Chicago", "Amsterdam", "Dubai"]
-const COUNTRIES = ["United States", "United Kingdom", "Germany", "Japan", "Singapore", "Canada", "Australia", "India", "France", "Netherlands"]
+const COUNTRIES_LIST = ["United States", "United Kingdom", "Germany", "Japan", "Singapore", "Canada", "Australia", "India", "France", "Netherlands"]
 const INDUSTRIES = ["Financial Services", "Healthcare", "Cloud SaaS", "E-Commerce", "Logistics & Supply Chain", "Artificial Intelligence", "Renewable Energy", "Cybersecurity", "Telecommunications", "Automotive"]
 const PRODUCTS = ["Enterprise Cloud Server", "PostgreSQL High-Availability Cluster", "Data Analytics Suite", "Real-Time Event Streamer", "Zero-Trust Security Gateway", "AI Inference Engine", "ETL Pipeline Orchestrator", "Managed Redis Cache", "Kubernetes Ingress Controller", "API Rate Limiter"]
 const CATEGORIES = ["Infrastructure", "Data Management", "Security", "Analytics", "Developer Tools", "Networking"]
@@ -42,7 +42,25 @@ const PAYMENT_METHODS = ["CREDIT_CARD", "ACH_TRANSFER", "WIRE_TRANSFER", "CRYPTO
 const ORDER_STATUSES = ["COMPLETED", "PROCESSING", "PENDING_PAYMENT", "SHIPPED", "REFUNDED", "CANCELLED"]
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"]
 const ENDPOINTS = ["/api/v1/auth/login", "/api/v1/users/profile", "/api/v1/orders/checkout", "/api/v1/datasets/query", "/api/v1/schemas/diff", "/api/v1/healthz", "/api/v1/webhooks/stripe"]
-const LOG_LEVELS = ["INFO", "WARN", "ERROR", "DEBUG"]
+
+// Comprehensive ISO Country & Geography Reference Dataset
+const ISO_COUNTRIES_DATA: Record<string, any>[] = [
+  { country_id: 1, iso2: "US", iso3: "USA", country_name: "United States", continent: "North America", capital: "Washington, D.C.", currency_code: "USD", phone_code: "+1", population: 334914895 },
+  { country_id: 2, iso2: "GB", iso3: "GBR", country_name: "United Kingdom", continent: "Europe", capital: "London", currency_code: "GBP", phone_code: "+44", population: 67736802 },
+  { country_id: 3, iso2: "DE", iso3: "DEU", country_name: "Germany", continent: "Europe", capital: "Berlin", currency_code: "EUR", phone_code: "+49", population: 83294633 },
+  { country_id: 4, iso2: "JP", iso3: "JPN", country_name: "Japan", continent: "Asia", capital: "Tokyo", currency_code: "JPY", phone_code: "+81", population: 124516650 },
+  { country_id: 5, iso2: "IN", iso3: "IND", country_name: "India", continent: "Asia", capital: "New Delhi", currency_code: "INR", phone_code: "+91", population: 1428627663 },
+  { country_id: 6, iso2: "CA", iso3: "CAN", country_name: "Canada", continent: "North America", capital: "Ottawa", currency_code: "CAD", phone_code: "+1", population: 38781291 },
+  { country_id: 7, iso2: "AU", iso3: "AUS", country_name: "Australia", continent: "Oceania", capital: "Canberra", currency_code: "AUD", phone_code: "+61", population: 26439111 },
+  { country_id: 8, iso2: "SG", iso3: "SGP", country_name: "Singapore", continent: "Asia", capital: "Singapore", currency_code: "SGD", phone_code: "+65", population: 5917600 },
+  { country_id: 9, iso2: "FR", iso3: "FRA", country_name: "France", continent: "Europe", capital: "Paris", currency_code: "EUR", phone_code: "+33", population: 68070697 },
+  { country_id: 10, iso2: "CH", iso3: "CHE", country_name: "Switzerland", continent: "Europe", capital: "Bern", currency_code: "CHF", phone_code: "+41", population: 8796669 },
+  { country_id: 11, iso2: "NL", iso3: "NLD", country_name: "Netherlands", continent: "Europe", capital: "Amsterdam", currency_code: "EUR", phone_code: "+31", population: 17700982 },
+  { country_id: 12, iso2: "BR", iso3: "BRA", country_name: "Brazil", continent: "South America", capital: "Brasília", currency_code: "BRL", phone_code: "+55", population: 215313498 },
+  { country_id: 13, iso2: "AE", iso3: "ARE", country_name: "United Arab Emirates", continent: "Asia", capital: "Abu Dhabi", currency_code: "AED", phone_code: "+971", population: 9441129 },
+  { country_id: 14, iso2: "KR", iso3: "KOR", country_name: "South Korea", continent: "Asia", capital: "Seoul", currency_code: "KRW", phone_code: "+82", population: 51784059 },
+  { country_id: 15, iso2: "SE", iso3: "SWE", country_name: "Sweden", continent: "Europe", capital: "Stockholm", currency_code: "SEK", phone_code: "+46", population: 10486941 },
+]
 
 function getRandomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -64,7 +82,10 @@ function getRandomDate(startYear: number = 2023): string {
 
 export default function TestDataGeneratorPage() {
   const navigate = useNavigate()
+  const [dataSource, setDataSource] = useState<DataSource>("local_generator")
   const [entityType, setEntityType] = useState<EntityType>("users")
+  const [dummyResource, setDummyResource] = useState<DummyResourceType>("products")
+  const [randomUserSeed, setRandomUserSeed] = useState("datamaster")
   const [rowCount, setRowCount] = useState<number>(50)
   const [searchTerm, setSearchTerm] = useState("")
   const [outputFormat, setOutputFormat] = useState<"table" | "json" | "sql" | "csv">("table")
@@ -72,9 +93,79 @@ export default function TestDataGeneratorPage() {
   const [copied, setCopied] = useState(false)
   const [generationSeed, setGenerationSeed] = useState(1)
 
-  // Generate synthetic records
-  const generatedRecords = useMemo(() => {
-    // Seed dependency to trigger re-generation
+  // Remote API State
+  const [remoteRecords, setRemoteRecords] = useState<Record<string, any>[]>([])
+  const [loadingRemote, setLoadingRemote] = useState(false)
+
+  // Fetch Remote API records when DummyJSON or RandomUser.me is active
+  useEffect(() => {
+    if (dataSource === "dummyjson") {
+      setLoadingRemote(true)
+      fetch(`https://dummyjson.com/${dummyResource}?limit=${Math.min(rowCount, 100)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const list = data[dummyResource] || []
+          // Flatten nested fields for clean tabular rendering
+          const flattened = list.map((item: any) => {
+            const flat: Record<string, any> = {}
+            Object.entries(item).forEach(([k, v]) => {
+              if (typeof v === "object" && v !== null) {
+                flat[k] = JSON.stringify(v)
+              } else {
+                flat[k] = v
+              }
+            })
+            return flat
+          })
+          setRemoteRecords(flattened)
+          setTableName(`dummyjson_${dummyResource}`)
+          setLoadingRemote(false)
+        })
+        .catch(() => {
+          setLoadingRemote(false)
+        })
+    } else if (dataSource === "randomuser") {
+      setLoadingRemote(true)
+      fetch(`https://randomuser.me/api/?results=${Math.min(rowCount, 100)}&seed=${randomUserSeed}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const users = (data.results || []).map((u: any, idx: number) => ({
+            user_id: 1000 + idx + 1,
+            first_name: u.name?.first || "",
+            last_name: u.name?.last || "",
+            gender: u.gender || "",
+            email: u.email || "",
+            phone: u.phone || "",
+            city: u.location?.city || "",
+            state: u.location?.state || "",
+            country: u.location?.country || "",
+            postcode: String(u.location?.postcode || ""),
+            latitude: u.location?.coordinates?.latitude || "",
+            longitude: u.location?.coordinates?.longitude || "",
+            registered_age: u.registered?.age || 0,
+            nationality: u.nat || "",
+          }))
+          setRemoteRecords(users)
+          setTableName("randomuser_demographics")
+          setLoadingRemote(false)
+        })
+        .catch(() => {
+          setLoadingRemote(false)
+        })
+    }
+  }, [dataSource, dummyResource, randomUserSeed, rowCount, generationSeed])
+
+  // Active records: local generator, remote API, or countries
+  const activeRecords = useMemo(() => {
+    if (dataSource === "dummyjson" || dataSource === "randomuser") {
+      return remoteRecords.length > 0 ? remoteRecords : []
+    }
+
+    if (dataSource === "countries") {
+      return ISO_COUNTRIES_DATA
+    }
+
+    // Local Generator
     const _ = generationSeed
     const records: Record<string, any>[] = []
 
@@ -90,7 +181,7 @@ export default function TestDataGeneratorPage() {
           email: `${first.toLowerCase()}.${last.toLowerCase()}@${domain}`,
           age: getRandomInt(21, 65),
           city: getRandomItem(CITIES),
-          country: getRandomItem(COUNTRIES),
+          country: getRandomItem(COUNTRIES_LIST),
           account_balance: getRandomFloat(150, 45000),
           is_active: Math.random() > 0.15 ? 1 : 0,
           created_at: getRandomDate(2022),
@@ -117,7 +208,7 @@ export default function TestDataGeneratorPage() {
           company_id: 300 + i,
           company_name: name,
           industry: getRandomItem(INDUSTRIES),
-          headquarters: `${getRandomItem(CITIES)}, ${getRandomItem(COUNTRIES)}`,
+          headquarters: `${getRandomItem(CITIES)}, ${getRandomItem(COUNTRIES_LIST)}`,
           annual_revenue_usd: getRandomInt(500000, 75000000),
           employee_count: getRandomInt(15, 3500),
           founded_year: getRandomInt(1995, 2023),
@@ -153,41 +244,41 @@ export default function TestDataGeneratorPage() {
     }
 
     return records
-  }, [entityType, rowCount, generationSeed])
+  }, [dataSource, remoteRecords, entityType, rowCount, generationSeed])
 
   // Filtered records for table preview
   const filteredRecords = useMemo(() => {
-    if (!searchTerm.trim()) return generatedRecords
+    if (!searchTerm.trim()) return activeRecords
     const term = searchTerm.toLowerCase()
-    return generatedRecords.filter((row) =>
+    return activeRecords.filter((row) =>
       Object.values(row).some((val) => String(val).toLowerCase().includes(term))
     )
-  }, [generatedRecords, searchTerm])
+  }, [activeRecords, searchTerm])
 
   const columnHeaders = useMemo(() => {
-    if (generatedRecords.length === 0) return []
-    return Object.keys(generatedRecords[0])
-  }, [generatedRecords])
+    if (activeRecords.length === 0) return []
+    return Object.keys(activeRecords[0])
+  }, [activeRecords])
 
   // Format conversions
   const jsonOutput = useMemo(() => {
-    return JSON.stringify(generatedRecords, null, 2)
-  }, [generatedRecords])
+    return JSON.stringify(activeRecords, null, 2)
+  }, [activeRecords])
 
   const csvOutput = useMemo(() => {
-    if (generatedRecords.length === 0) return ""
-    const headers = Object.keys(generatedRecords[0]).join(",")
-    const rows = generatedRecords.map((row) =>
+    if (activeRecords.length === 0) return ""
+    const headers = Object.keys(activeRecords[0]).join(",")
+    const rows = activeRecords.map((row) =>
       Object.values(row)
-        .map((val) => (typeof val === "string" && val.includes(",") ? `"${val}"` : String(val)))
+        .map((val) => (typeof val === "string" && val.includes(",") ? `"${val.replace(/"/g, '""')}"` : String(val)))
         .join(",")
     )
     return [headers, ...rows].join("\n")
-  }, [generatedRecords])
+  }, [activeRecords])
 
   const sqlOutput = useMemo(() => {
-    if (generatedRecords.length === 0) return ""
-    const firstRow = generatedRecords[0]
+    if (activeRecords.length === 0) return ""
+    const firstRow = activeRecords[0]
     const cols = Object.keys(firstRow)
 
     const typeMapping: Record<string, string> = {}
@@ -201,7 +292,8 @@ export default function TestDataGeneratorPage() {
     })
 
     let sql = `-- ==========================================================================\n`
-    sql += `-- Synthetic Test Dataset: ${entityType.toUpperCase()} (${generatedRecords.length} Rows)\n`
+    sql += `-- Dataset: ${tableName.toUpperCase()} (${activeRecords.length} Rows)\n`
+    sql += `-- Source : ${dataSource.toUpperCase()}\n`
     sql += `-- Generated on: ${new Date().toISOString()}\n`
     sql += `-- ==========================================================================\n\n`
     sql += `DROP TABLE IF EXISTS ${tableName};\n\n`
@@ -209,9 +301,9 @@ export default function TestDataGeneratorPage() {
     sql += cols.map((col, idx) => `  ${col.padEnd(22)} ${typeMapping[col]}${idx === 0 ? " PRIMARY KEY" : ""}`).join(",\n")
     sql += `\n);\n\n`
 
-    sql += `-- Insert Data Batch (${generatedRecords.length} rows)\n`
+    sql += `-- Insert Data Batch (${activeRecords.length} rows)\n`
     sql += `INSERT INTO ${tableName} (${cols.join(", ")})\nVALUES\n`
-    const valueTuples = generatedRecords.map((row) => {
+    const valueTuples = activeRecords.map((row) => {
       const vals = cols.map((col) => {
         const val = row[col]
         if (val === null || val === undefined) return "NULL"
@@ -225,7 +317,7 @@ export default function TestDataGeneratorPage() {
     sql += `-- Verification Query\nSELECT * FROM ${tableName} LIMIT 10;\n`
 
     return sql
-  }, [generatedRecords, tableName, entityType])
+  }, [activeRecords, tableName, dataSource])
 
   const handleDownload = (format: "csv" | "json" | "sql") => {
     let content = ""
@@ -268,21 +360,22 @@ export default function TestDataGeneratorPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-2">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Faker & Synthetic Data Engine</span>
+            <span>Faker, DummyJSON, RandomUser & ISO Reference Hub</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Synthetic Mock Data Generator</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Synthetic Mock & Test Data Generator</h1>
           <p className="text-white/70 text-sm mt-1 max-w-2xl">
-            Generate high-speed, realistic relational test datasets (Users, Orders, Companies, Financial Ledgers, Server Logs). Export instantly to CSV, JSON, or executable SQL.
+            Generate synthetic datasets or pull live feeds from DummyJSON, RandomUser.me, and ISO Geography dimensions. Export to CSV, JSON, or SQL tables.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setGenerationSeed((prev) => prev + 1)}
+            disabled={loadingRemote}
             variant="outline"
             className="border-white/20 bg-white/5 hover:bg-white/10 text-xs text-white"
           >
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loadingRemote ? "animate-spin" : ""}`} />
             <span>Regenerate Dataset</span>
           </Button>
 
@@ -296,60 +389,153 @@ export default function TestDataGeneratorPage() {
         </div>
       </div>
 
-      {/* Control Panel Grid */}
+      {/* Provider Selector Tabs */}
+      <div className="flex flex-wrap items-center gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10 w-fit">
+        <button
+          onClick={() => {
+            setDataSource("local_generator")
+            setTableName("synthetic_test_data")
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+            dataSource === "local_generator" ? "bg-white text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+          <span>1. Fast Synthetic Generator</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setDataSource("dummyjson")
+            setTableName(`dummyjson_${dummyResource}`)
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+            dataSource === "dummyjson" ? "bg-amber-400 text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <ShoppingBag className="h-3.5 w-3.5 text-black" />
+          <span>2. DummyJSON Live Feed</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setDataSource("randomuser")
+            setTableName("randomuser_demographics")
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+            dataSource === "randomuser" ? "bg-sky-400 text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Users className="h-3.5 w-3.5 text-black" />
+          <span>3. RandomUser.me Feed</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setDataSource("countries")
+            setTableName("dim_country_geography")
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+            dataSource === "countries" ? "bg-purple-400 text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Globe className="h-3.5 w-3.5 text-black" />
+          <span>4. ISO Country & Geography</span>
+        </button>
+      </div>
+
+      {/* Dynamic Controls Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Entity Type Selector */}
+        {/* Control 1: Entity / Resource Type */}
         <Card className="border-white/15 bg-white/5 backdrop-blur-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-mono text-white/60 uppercase">1. Dataset Entity</CardTitle>
+            <CardTitle className="text-xs font-mono text-white/60 uppercase">1. Dataset Selection</CardTitle>
           </CardHeader>
           <CardContent>
-            <select
-              value={entityType}
-              onChange={(e) => {
-                const val = e.target.value as EntityType
-                setEntityType(val)
-                setTableName(val)
-              }}
-              className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-white/40"
-            >
-              <option value="users">👤 Users & Customer Accounts</option>
-              <option value="orders">🛒 E-Commerce Orders & Transactions</option>
-              <option value="companies">🏢 Enterprise Companies & B2B</option>
-              <option value="financial_ledger">💳 Financial Ledger & Payments</option>
-              <option value="server_logs">🖥️ HTTP Server & Access Logs</option>
-            </select>
+            {dataSource === "local_generator" && (
+              <select
+                value={entityType}
+                onChange={(e) => {
+                  const val = e.target.value as EntityType
+                  setEntityType(val)
+                  setTableName(val)
+                }}
+                className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-white/40"
+              >
+                <option value="users">👤 Users & Customer Accounts</option>
+                <option value="orders">🛒 E-Commerce Orders & Transactions</option>
+                <option value="companies">🏢 Enterprise Companies & B2B</option>
+                <option value="financial_ledger">💳 Financial Ledger & Payments</option>
+                <option value="server_logs">🖥️ HTTP Server & Access Logs</option>
+              </select>
+            )}
+
+            {dataSource === "dummyjson" && (
+              <select
+                value={dummyResource}
+                onChange={(e) => {
+                  const val = e.target.value as DummyResourceType
+                  setDummyResource(val)
+                  setTableName(`dummyjson_${val}`)
+                }}
+                className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-white/40"
+              >
+                <option value="products">📦 Products & Inventory</option>
+                <option value="carts">🛒 Shopping Carts & Items</option>
+                <option value="recipes">🍲 Culinary Recipes & Ingredients</option>
+                <option value="posts">📝 Articles & Blog Posts</option>
+              </select>
+            )}
+
+            {dataSource === "randomuser" && (
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  value={randomUserSeed}
+                  onChange={(e) => setRandomUserSeed(e.target.value)}
+                  placeholder="Seed string..."
+                  className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-2 text-xs font-mono text-white"
+                />
+                <span className="text-[10px] text-white/40">Seed for reproducible data</span>
+              </div>
+            )}
+
+            {dataSource === "countries" && (
+              <div className="text-xs font-mono text-white/80 py-2">
+                15+ Standard ISO-3166 Nations
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Row Count Slider */}
+        {/* Control 2: Row Volume */}
         <Card className="border-white/15 bg-white/5 backdrop-blur-md">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-mono text-white/60 uppercase">2. Row Volume</CardTitle>
             <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono">
-              {rowCount} Rows
+              {dataSource === "countries" ? activeRecords.length : rowCount} Rows
             </Badge>
           </CardHeader>
           <CardContent className="space-y-2">
             <input
               type="range"
               min={10}
-              max={1000}
+              max={dataSource === "dummyjson" || dataSource === "randomuser" ? 100 : 1000}
               step={10}
+              disabled={dataSource === "countries"}
               value={rowCount}
               onChange={(e) => setRowCount(Number(e.target.value))}
-              className="w-full accent-emerald-400 cursor-pointer"
+              className="w-full accent-emerald-400 cursor-pointer disabled:opacity-30"
             />
             <div className="flex justify-between text-[10px] font-mono text-white/40">
               <span>10</span>
-              <span>250</span>
-              <span>500</span>
-              <span>1,000</span>
+              <span>{dataSource === "dummyjson" || dataSource === "randomuser" ? "50" : "500"}</span>
+              <span>{dataSource === "dummyjson" || dataSource === "randomuser" ? "100" : "1,000"}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Table Name */}
+        {/* Control 3: Table Name */}
         <Card className="border-white/15 bg-white/5 backdrop-blur-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-xs font-mono text-white/60 uppercase">3. Target Table Name</CardTitle>
@@ -359,13 +545,12 @@ export default function TestDataGeneratorPage() {
               type="text"
               value={tableName}
               onChange={(e) => setTableName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
-              placeholder="synthetic_table"
               className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
             />
           </CardContent>
         </Card>
 
-        {/* Export CTA Card */}
+        {/* Control 4: Export CTA */}
         <Card className="border-white/15 bg-white/5 backdrop-blur-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-xs font-mono text-white/60 uppercase">4. Quick Export</CardTitle>
@@ -449,7 +634,7 @@ export default function TestDataGeneratorPage() {
           </div>
         </div>
 
-        {/* View 1: Interactive Table View */}
+        {/* View 1: Table View */}
         {outputFormat === "table" && (
           <div className="border border-white/15 rounded-xl overflow-hidden bg-white/5 backdrop-blur-md">
             <div className="overflow-x-auto max-h-[500px]">
@@ -471,7 +656,7 @@ export default function TestDataGeneratorPage() {
                         {idx + 1}
                       </td>
                       {columnHeaders.map((col) => (
-                        <td key={col} className="p-3 border-r border-white/10 whitespace-nowrap text-white/90">
+                        <td key={col} className="p-3 border-r border-white/10 whitespace-nowrap text-white/90 max-w-xs truncate">
                           {typeof row[col] === "boolean" || col === "is_active" || col === "is_public" ? (
                             <Badge
                               variant="outline"
@@ -496,9 +681,9 @@ export default function TestDataGeneratorPage() {
 
             <div className="p-3 border-t border-white/10 bg-[#0a0a0a]/60 flex items-center justify-between text-xs font-mono text-white/50">
               <span>
-                Showing {filteredRecords.length} of {generatedRecords.length} generated rows
+                Showing {filteredRecords.length} of {activeRecords.length} records
               </span>
-              <span>Entity: {entityType.toUpperCase()} • 100% In-Browser</span>
+              <span>Source: {dataSource.toUpperCase()} • 100% In-Browser</span>
             </div>
           </div>
         )}
