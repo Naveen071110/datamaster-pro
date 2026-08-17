@@ -47,6 +47,16 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   useRevealObserver()
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isVideoModalOpen) {
+        setIsVideoModalOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isVideoModalOpen])
+
   return (
     <div className="relative bg-[#0a0a0a] text-white min-h-screen font-sans selection:bg-white/20 antialiased overflow-x-hidden">
       {/* Smooth Scroll-Scrubbed Video Background (Zero play/pause buttons) */}
@@ -256,15 +266,19 @@ export default function LandingPage() {
               Comprehensive Toolkit
             </div>
             <h2 className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out text-3xl sm:text-5xl font-bold tracking-tight text-white">
-              11 Essential Tools for Data Engineering & Diagnostics
+              19 Essential Tools for Data Engineering & Cloud Suites
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Feature 1: SQL WASM */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to In-Browser CSV & SQL WASM Sandbox"
               onClick={() => navigate("/sql-sandbox")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out md:col-span-2 rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/sql-sandbox"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out md:col-span-2 rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-10 w-10 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
@@ -286,8 +300,12 @@ export default function LandingPage() {
 
             {/* Feature 2: DDL Generator */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to Multi-Dialect DDL Synthesizer"
               onClick={() => navigate("/ddl-generator")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/ddl-generator"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-10 w-10 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
@@ -303,8 +321,12 @@ export default function LandingPage() {
 
             {/* Feature 3: Data Profiler */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to Dataset Statistics & Quality"
               onClick={() => navigate("/data-profiler")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/data-profiler"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-10 w-10 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
@@ -320,8 +342,12 @@ export default function LandingPage() {
 
             {/* Feature 4: Schema Diff */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to Schema Comparison & Migration"
               onClick={() => navigate("/schema-diff")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/schema-diff"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-10 w-10 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
@@ -337,8 +363,12 @@ export default function LandingPage() {
 
             {/* Feature 5: Code Library */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to Code Snippet Vault"
               onClick={() => navigate("/code-library")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/code-library"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-10 w-10 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
@@ -354,8 +384,12 @@ export default function LandingPage() {
 
             {/* Feature 6: ETL Workflows */}
             <div
+              role="link"
+              tabIndex={0}
+              aria-label="Navigate to ETL Pipeline DAG Builder & SQL Formatter"
               onClick={() => navigate("/etl-workflows")}
-              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out md:col-span-3 rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/etl-workflows"); } }}
+              className="reveal translate-y-8 opacity-0 transition-all duration-700 ease-out md:col-span-3 rounded-2xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl p-6 sm:p-8 cursor-pointer group transition-all duration-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 focus:outline-none focus:ring-2 focus:ring-white"
             >
               <div>
                 <div className="flex items-center gap-2 font-mono text-xs text-white/40 mb-2">
@@ -368,7 +402,11 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <button className="rounded-xl bg-white px-6 py-3 text-xs font-semibold text-black hover:bg-white/90 transition-colors shrink-0 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); navigate("/app"); }}
+                className="rounded-xl bg-white px-6 py-3 text-xs font-semibold text-black hover:bg-white/90 transition-colors shrink-0 flex items-center gap-2"
+              >
                 <span>Explore Workbench</span>
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -378,8 +416,17 @@ export default function LandingPage() {
 
         {/* Video Demo Modal */}
         {isVideoModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6">
-            <div className="relative w-full max-w-4xl rounded-2xl border border-white/20 bg-[#0a0a0a] overflow-hidden shadow-2xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="DataMaster Pro Walkthrough Demo"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
+            onClick={() => setIsVideoModalOpen(false)}
+          >
+            <div
+              className="relative w-full max-w-4xl rounded-2xl border border-white/20 bg-[#0a0a0a] overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Modal Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
                 <div className="flex items-center gap-2">
@@ -387,8 +434,10 @@ export default function LandingPage() {
                   <span className="text-sm font-semibold text-white">DataMaster Pro — App Walkthrough</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setIsVideoModalOpen(false)}
                   className="rounded-lg p-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  aria-label="Close walkthrough modal"
                 >
                   <X className="h-5 w-5" />
                 </button>

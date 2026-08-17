@@ -19,12 +19,13 @@ const QAPage = lazy(() => import("@/pages/QAPage"))
 const SchemaValidatorPage = lazy(() => import("@/pages/SchemaValidatorPage"))
 const TroubleshootingPage = lazy(() => import("@/pages/TroubleshootingPage"))
 
-// Informatica, DB2 & Enterprise Tools
+// ETL & Cloud Data Suite (Informatica, Snowflake, dbt, Airflow, DB2)
 const InformaticaXmlToSqlPage = lazy(() => import("@/pages/InformaticaXmlToSqlPage"))
 const InformaticaExpressionTranspilerPage = lazy(() => import("@/pages/InformaticaExpressionTranspilerPage"))
+const SnowflakeStageGeneratorPage = lazy(() => import("@/pages/SnowflakeStageGeneratorPage"))
+const DbtModelGeneratorPage = lazy(() => import("@/pages/DbtModelGeneratorPage"))
+const AirflowDagGeneratorPage = lazy(() => import("@/pages/AirflowDagGeneratorPage"))
 const Db2SasDdlPage = lazy(() => import("@/pages/Db2SasDdlPage"))
-const AqtSqlTranspilerPage = lazy(() => import("@/pages/AqtSqlTranspilerPage"))
-const ProcedureToPysparkPage = lazy(() => import("@/pages/ProcedureToPysparkPage"))
 
 function LazyPage({ Component, variant }: { Component: React.ComponentType; variant?: "home" | "full" | "grid" | "list" | "editor" }) {
   return (
@@ -58,6 +59,8 @@ const routes: RouteObject[] = [
     element: <AppShell />,
     children: [
       { path: "app", element: <LazyPage Component={HomePage} variant="home" /> },
+      
+      // Micro-SaaS Tools
       { path: "sql-sandbox", element: <LazyPage Component={SqlSandboxPage} variant="editor" /> },
       { path: "ddl-generator", element: <LazyPage Component={DdlGeneratorPage} variant="editor" /> },
       { path: "data-profiler", element: <LazyPage Component={DataProfilerPage} variant="full" /> },
@@ -67,17 +70,20 @@ const routes: RouteObject[] = [
       { path: "sql-formatter", element: <LazyPage Component={SqlFormatterPage} variant="editor" /> },
       { path: "code-library", element: <LazyPage Component={CodeLibraryPage} variant="grid" /> },
       { path: "etl-workflows", element: <LazyPage Component={EtlWorkflowsPage} variant="full" /> },
+
+      // ETL & Cloud Data Suite (Informatica, Snowflake, dbt, Airflow)
+      { path: "informatica-mapping-to-sql", element: <LazyPage Component={InformaticaXmlToSqlPage} variant="editor" /> },
+      { path: "informatica-expression-transpiler", element: <LazyPage Component={InformaticaExpressionTranspilerPage} variant="editor" /> },
+      { path: "snowflake-stage-generator", element: <LazyPage Component={SnowflakeStageGeneratorPage} variant="editor" /> },
+      { path: "dbt-model-generator", element: <LazyPage Component={DbtModelGeneratorPage} variant="editor" /> },
+      { path: "airflow-dag-generator", element: <LazyPage Component={AirflowDagGeneratorPage} variant="editor" /> },
+
+      // Diagnostics & QA
       { path: "performance-analyzer", element: <LazyPage Component={PerformanceAnalyzerPage} variant="full" /> },
       { path: "qa", element: <LazyPage Component={QAPage} variant="full" /> },
       { path: "schema-validator", element: <LazyPage Component={SchemaValidatorPage} variant="editor" /> },
       { path: "troubleshooting", element: <LazyPage Component={TroubleshootingPage} variant="full" /> },
-
-      // Informatica, DB2 & Enterprise Tools
-      { path: "informatica-mapping-to-sql", element: <LazyPage Component={InformaticaXmlToSqlPage} variant="editor" /> },
-      { path: "informatica-expression-transpiler", element: <LazyPage Component={InformaticaExpressionTranspilerPage} variant="editor" /> },
       { path: "db2-sas-ddl-generator", element: <LazyPage Component={Db2SasDdlPage} variant="editor" /> },
-      { path: "aqt-sql-transpiler", element: <LazyPage Component={AqtSqlTranspilerPage} variant="editor" /> },
-      { path: "db2-procedure-to-pyspark", element: <LazyPage Component={ProcedureToPysparkPage} variant="editor" /> },
 
       { path: "*", element: <NotFound /> },
     ],

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   DollarSign,
@@ -6,18 +6,15 @@ import {
   RefreshCw,
   Copy,
   Check,
-  Download,
   Terminal,
   Database,
   TrendingUp,
   Search,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
 import Editor from "@monaco-editor/react"
 
 interface RatesResponse {
@@ -189,7 +186,7 @@ export default function CurrencyRatesPage() {
 
     const rows = Object.entries(ratesData.rates).map(([code, rate]) => {
       const name = CURRENCY_NAMES[code] || code
-      const inverse = (1 / rate).toFixed(6)
+      const inverse = rate > 0 ? (1 / rate).toFixed(6) : "0.000000"
       return `  ('${ratesData.date}', '${ratesData.base}', '${code}', '${name.replace(/'/g, "''")}', ${rate.toFixed(6)}, ${inverse})`
     })
 
@@ -224,7 +221,7 @@ export default function CurrencyRatesPage() {
   }
 
   const handleCopySql = () => {
-    navigator.clipboard.writeText(sqlDimensionOutput)
+    navigator.clipboard.writeText(sqlDimensionOutput).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -234,10 +231,6 @@ export default function CurrencyRatesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-mono mb-2">
-            <DollarSign className="h-3.5 w-3.5" />
-            <span>ECB & Global FX API Engine</span>
-          </div>
           <h1 className="text-3xl font-bold tracking-tight">Live Currency Rates & FX Normalizer</h1>
           <p className="text-white/70 text-sm mt-1 max-w-2xl">
             Live foreign exchange rates across 30+ global currencies. Convert monetary values and generate SQL `dim_exchange_rates` dimension tables for ETL pipelines.
@@ -246,89 +239,63 @@ export default function CurrencyRatesPage() {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 border border-white/15 bg-white/5 rounded-full px-3 py-1 text-xs">
-            {isLive ? (
-              <>
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span className="font-mono text-[11px] text-emerald-400">Live ECB Feed ({ratesData.date})</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                <span className="font-mono text-[11px] text-amber-400">Baseline Cache ({ratesData.date})</span>
-              </>
-            )}
+            <span className={`h-2 w-2 rounded-full ${isLive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+            <span className="font-mono text-white/70">
+              {isLive ? "LIVE FEED" : "CACHED BASELINE"} • {ratesData.date}
+            </span>
           </div>
 
           <Button
             size="sm"
+            variant="outline"
             onClick={() => fetchLiveRates(baseCurrency)}
             disabled={loading}
-            variant="outline"
-            className="border-white/20 bg-white/5 hover:bg-white/10 text-xs text-white"
+            className="border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs gap-1.5"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh Feed</span>
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={() => navigate("/sql-sandbox")}
-            className="bg-white text-black hover:bg-white/90 text-xs font-medium"
-          >
-            <Terminal className="h-3.5 w-3.5 mr-1.5" />
-            <span>Open in SQL Sandbox</span>
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh Rates</span>
           </Button>
         </div>
       </div>
 
-      {/* Mode / Feature Tabs */}
-      <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 w-fit">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
         <button
           onClick={() => setActiveTab("converter")}
-          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
             activeTab === "converter" ? "bg-white text-black font-bold shadow-md" : "text-white/60 hover:text-white"
           }`}
         >
-          <ArrowRightLeft className="h-3.5 w-3.5" />
-          <span>1. Currency Converter</span>
+          <TrendingUp className="h-3.5 w-3.5" />
+          <span>FX Calculator & Live Matrix</span>
         </button>
         <button
           onClick={() => setActiveTab("sql")}
-          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
-            activeTab === "sql" ? "bg-sky-400 text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
+            activeTab === "sql" ? "bg-white text-black font-bold shadow-md" : "text-white/60 hover:text-white"
           }`}
         >
           <Database className="h-3.5 w-3.5" />
-          <span>2. SQL Dimension Table (DDL)</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("table")}
-          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
-            activeTab === "table" ? "bg-emerald-400 text-black font-bold shadow-md" : "text-white/60 hover:text-white"
-          }`}
-        >
-          <TrendingUp className="h-3.5 w-3.5" />
-          <span>3. Rates Matrix Grid</span>
+          <span>SQL Dimension Table Generator</span>
         </button>
       </div>
 
-      {/* TAB 1: Live Interactive Converter */}
+      {/* TAB 1: Converter & Matrix */}
       {activeTab === "converter" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Converter Card */}
+          {/* Conversion Calculator */}
           <Card className="lg:col-span-2 border-white/15 bg-white/5 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold text-white">Interactive Currency Pair Converter</CardTitle>
-              <CardDescription className="text-xs text-white/60">
-                Calculated against live European Central Bank reference exchange rates
-              </CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-white">Currency Conversion Calculator</CardTitle>
+              <CardDescription className="text-xs text-white/60">Real-time valuation based on foreign exchange feeds</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                 {/* Amount Input */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-white/60">Amount:</label>
+                  <label htmlFor="fx-amount-input" className="text-xs font-mono text-white/60">Amount:</label>
                   <input
+                    id="fx-amount-input"
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
@@ -338,8 +305,9 @@ export default function CurrencyRatesPage() {
 
                 {/* Base Currency */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-white/60">From Currency:</label>
+                  <label htmlFor="fx-base-currency" className="text-xs font-mono text-white/60">From Currency:</label>
                   <select
+                    id="fx-base-currency"
                     value={baseCurrency}
                     onChange={(e) => setBaseCurrency(e.target.value)}
                     className="w-full bg-[#0a0a0a] border border-white/15 rounded-lg px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-white/40"
@@ -355,12 +323,13 @@ export default function CurrencyRatesPage() {
                 {/* Target Currency */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono text-white/60">To Currency:</label>
+                    <label htmlFor="fx-target-currency" className="text-xs font-mono text-white/60">To Currency:</label>
                     <button onClick={handleSwap} className="text-[10px] text-sky-400 hover:underline flex items-center gap-1">
                       <ArrowRightLeft className="h-2.5 w-2.5" /> Swap
                     </button>
                   </div>
                   <select
+                    id="fx-target-currency"
                     value={targetCurrency}
                     onChange={(e) => setTargetCurrency(e.target.value)}
                     className="w-full bg-[#0a0a0a] border border-white/15 rounded-lg px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-white/40"
@@ -384,7 +353,7 @@ export default function CurrencyRatesPage() {
                 </div>
                 <div className="text-xs font-mono text-white/60 pt-2 border-t border-sky-500/20 flex flex-wrap justify-between gap-2">
                   <span>1 {baseCurrency} = {currentRate.toFixed(4)} {targetCurrency}</span>
-                  <span>1 {targetCurrency} = {(1 / currentRate).toFixed(4)} {baseCurrency}</span>
+                  <span>1 {targetCurrency} = {currentRate > 0 ? (1 / currentRate).toFixed(4) : "0.0000"} {baseCurrency}</span>
                 </div>
               </div>
             </CardContent>
@@ -406,7 +375,7 @@ export default function CurrencyRatesPage() {
                     </div>
                     <div className="text-right">
                       <div className="font-mono text-xs font-semibold text-sky-400">{r.toFixed(4)}</div>
-                      <div className="text-[10px] font-mono text-white/40">1 {code} = {(1 / r).toFixed(4)} {baseCurrency}</div>
+                      <div className="text-[10px] font-mono text-white/40">1 {code} = {r > 0 ? (1 / r).toFixed(4) : "0.0000"} {baseCurrency}</div>
                     </div>
                   </div>
                 )

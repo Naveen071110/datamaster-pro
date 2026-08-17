@@ -1,12 +1,11 @@
 import { useState, useMemo, useCallback } from "react"
-import { Search, Copy, Check, Bookmark, BookmarkCheck, Code, Filter, X } from "lucide-react"
+import { Search, Copy, Check, Bookmark, BookmarkCheck, Code, X } from "lucide-react"
 import { Input } from "@/shared/components/ui/input"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog"
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { cn } from "@/shared/utils/cn"
 import { useDebounce } from "@/shared/hooks/useDebounce"
 import { useAppStore } from "@/stores"
@@ -19,7 +18,8 @@ const difficulties = ["beginner", "intermediate", "advanced"] as const
 function CopyButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
 
-  const handleCopy = async () => {
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     try {
       await navigator.clipboard.writeText(code)
       setCopied(true)
@@ -233,8 +233,17 @@ export default function CodeLibraryPage() {
               {filtered.map((snippet) => (
                 <Card
                   key={snippet.id}
-                  className="cursor-pointer hover:bg-accent/30 transition-colors border-border/50"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View snippet: ${snippet.title}`}
+                  className="cursor-pointer hover:bg-accent/30 transition-colors border-border/50 focus:outline-none focus:ring-1 focus:ring-primary"
                   onClick={() => setSelectedSnippet(snippet)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setSelectedSnippet(snippet)
+                    }
+                  }}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-start justify-between gap-2 mb-2">

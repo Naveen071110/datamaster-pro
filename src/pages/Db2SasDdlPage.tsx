@@ -37,18 +37,24 @@ export default function Db2SasDdlPage() {
     const lines = db2ParamFile.split("\n")
     lines.forEach((line) => {
       const trimmed = line.trim()
-      if (trimmed && (trimmed.includes("=") || trimmed.includes(":"))) {
-        const parts = trimmed.split(/[:=]/)
-        if (parts.length >= 2) {
-          const key = line.split("=")[0].trim()
-          const val = line.split("=").slice(1).join("=").trim()
-          paramMap[key] = val
+      if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("--")) return
+
+      const sepIdx = trimmed.search(/[=:]/)
+      if (sepIdx !== -1) {
+        const rawKey = trimmed.slice(0, sepIdx).trim()
+        const rawVal = trimmed.slice(sepIdx + 1).trim()
+        if (rawKey) {
+          const cleanKey = rawKey.replace(/^[:&]/, "")
+          paramMap[rawKey] = rawVal
+          paramMap[cleanKey] = rawVal
+          paramMap[`:${cleanKey}`] = rawVal
+          paramMap[`&${cleanKey}`] = rawVal
         }
       }
     })
 
-    // Match :param or &macro
-    const foundParams = Array.from(db2ParamQuery.matchAll(/([::&][A-Za-z0-9_]+)/g)).map((m) => m[0])
+    // Match :param or &macro without capturing :: typecasts
+    const foundParams = Array.from(db2ParamQuery.matchAll(/(?<!:)([:&][A-Za-z0-9_]+)/g)).map((m) => m[1])
     const uniqueFoundParams = Array.from(new Set(foundParams))
 
     let resolvedSql = db2ParamQuery
@@ -56,8 +62,9 @@ export default function Db2SasDdlPage() {
     uniqueFoundParams.forEach((paramKey) => {
       if (paramMap[paramKey] !== undefined) {
         const val = paramMap[paramKey]
-        const escapedKey = paramKey.replace(/&/g, "\\&").replace(/:/g, "\\:")
-        resolvedSql = resolvedSql.replace(new RegExp(escapedKey, "g"), val)
+        const escapedKey = paramKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        // Use functional replacer to prevent $1, $& token interpretation
+        resolvedSql = resolvedSql.replace(new RegExp(escapedKey, "g"), () => val)
       }
     })
 
@@ -126,18 +133,37 @@ export default function Db2SasDdlPage() {
               <CardTitle className="text-base font-semibold text-emerald-400">3. Runnable Substituted Query</CardTitle>
               <CardDescription className="text-xs text-white/60">Ready to execute in DB2 / SAS</CardDescription>
             </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                navigator.clipboard.writeText(resolvedParamData.resolvedSql)
-                setCopiedResolved(true)
-                setTimeout(() => setCopiedResolved(false), 2000)
-              }}
-              className="bg-white text-black hover:bg-white/90 text-xs"
-            >
-              {copiedResolved ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-              <span className="ml-1">{copiedResolved ? "Copied!" : "Copy SQL"}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const blob = new Blob([resolvedParamData.resolvedSql], { type: "application/sql" })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement("a")
+                  a.href = url
+                  a.download = "db2_sas_resolved_query.sql"
+                  a.click()
+                  URL.revokeObjectURL(url)
+                }}
+                className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs"
+              >
+                <Database className="h-3.5 w-3.5 mr-1" />
+                <span>Download .sql</span>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(resolvedParamData.resolvedSql).catch(() => {})
+                  setCopiedResolved(true)
+                  setTimeout(() => setCopiedResolved(false), 2000)
+                }}
+                className="bg-white text-black hover:bg-white/90 text-xs"
+              >
+                {copiedResolved ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                <span className="ml-1">{copiedResolved ? "Copied!" : "Copy SQL"}</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">

@@ -24,20 +24,13 @@ function inferType(value: unknown): string {
     return Number.isInteger(value) ? "integer" : "number"
   }
   if (typeof value === "string") {
-    if (/^\d{4}-\d{2}-\d{2}/.test(value)) return "date"
-    if (/^\d{4}-\d{2}-\d{2}T/.test(value)) return "datetime"
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return "datetime"
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return "date"
     return "string"
   }
   if (Array.isArray(value)) return "array"
   if (typeof value === "object") return "object"
   return typeof value
-}
-
-function getSchemaType(value: unknown, schema?: Record<string, unknown>): string {
-  if (schema && schema["type"]) {
-    return String(schema["type"])
-  }
-  return inferType(value)
 }
 
 function validateField(
@@ -46,21 +39,26 @@ function validateField(
   values: unknown[]
 ): FieldValidation {
   const actualTypes = values.map((v) => inferType(v))
-  const uniqueTypes = [...new Set(actualTypes)]
-  const dominantType = uniqueTypes.includes("null")
-    ? uniqueTypes.filter((t) => t !== "null")[0] || "null"
-    : uniqueTypes[0]
+  const uniqueNonNullableTypes = [...new Set(actualTypes.filter((t) => t !== "null"))]
+  const displayActualType = uniqueNonNullableTypes.length > 0 ? uniqueNonNullableTypes.join(" | ") : "null"
 
-  const passed = dominantType === schemaType || schemaType === "any"
+  // Validation passes only if EVERY non-null value conforms to the expected type
+  const hasTypeMismatch = uniqueNonNullableTypes.some((t) => {
+    if (schemaType === "any") return false
+    if (schemaType === "number" && t === "integer") return false
+    return t !== schemaType
+  })
+
+  const passed = !hasTypeMismatch
   const sampleValue = values.find((v) => v !== null && v !== undefined) ?? null
 
   return {
     field,
     expectedType: schemaType,
-    actualType: dominantType,
+    actualType: displayActualType,
     sampleValue,
     passed,
-    error: passed ? undefined : `Expected ${schemaType}, got ${dominantType}`,
+    error: passed ? undefined : `Expected ${schemaType}, found [${displayActualType}]`,
   }
 }
 

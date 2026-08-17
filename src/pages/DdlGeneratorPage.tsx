@@ -1,8 +1,5 @@
 import { useState, useMemo } from "react"
-import { FileCode, Copy, Download, Upload, Check } from "lucide-react"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
+import { Copy, Download, Upload, Check } from "lucide-react"
 
 type Dialect = "postgres" | "snowflake" | "bigquery" | "mysql" | "sqlite"
 
@@ -12,6 +9,32 @@ const DIALECT_TYPES: Record<Dialect, { string: string; integer: string; float: s
   bigquery: { string: "STRING", integer: "INT64", float: "FLOAT64", boolean: "BOOL", timestamp: "TIMESTAMP" },
   mysql: { string: "VARCHAR(255)", integer: "INT", float: "DECIMAL(12,2)", boolean: "TINYINT(1)", timestamp: "DATETIME" },
   sqlite: { string: "TEXT", integer: "INTEGER", float: "REAL", boolean: "INTEGER", timestamp: "TEXT" },
+}
+
+// Quote-aware CSV line tokenizer
+function parseCsvLine(line: string): string[] {
+  const result: string[] = []
+  let current = ""
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim())
+      current = ""
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result
 }
 
 const SAMPLE_CSV = `id,first_name,last_name,email,salary,is_active,joined_date
@@ -45,9 +68,9 @@ export default function DdlGeneratorPage() {
       } else {
         const lines = trimmed.split("\n").map((l) => l.trim()).filter(Boolean)
         if (lines.length > 0) {
-          headers = lines[0].split(",").map((h) => h.replace(/^["']|["']$/g, "").trim())
+          headers = parseCsvLine(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
           for (let i = 1; i < lines.length; i++) {
-            const vals = lines[i].split(",").map((v) => v.replace(/^["']|["']$/g, "").trim())
+            const vals = parseCsvLine(lines[i]).map((v) => v.replace(/^["']|["']$/g, "").trim())
             const rowObj: Record<string, string> = {}
             headers.forEach((h, idx) => {
               rowObj[h] = vals[idx] ?? ""
@@ -133,6 +156,7 @@ export default function DdlGeneratorPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
+    reader.onerror = () => {}
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content) {
@@ -142,10 +166,11 @@ export default function DdlGeneratorPage() {
       }
     }
     reader.readAsText(file)
+    e.target.value = ""
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(ddlOutput)
+    navigator.clipboard.writeText(ddlOutput).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -199,6 +224,8 @@ export default function DdlGeneratorPage() {
             Paste raw CSV rows or a JSON array. Data never leaves your device.
           </p>
           <textarea
+            id="ddl-raw-input"
+            aria-label="Raw CSV or JSON input"
             value={rawInput}
             onChange={(e) => setRawInput(e.target.value)}
             className="w-full h-64 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
@@ -207,11 +234,12 @@ export default function DdlGeneratorPage() {
           <div className="space-y-3 pt-2 border-t border-white/10">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium mb-1.5 block">Target SQL Dialect</label>
+                  <label htmlFor="target-sql-dialect" className="text-xs font-medium mb-1.5 block">Target SQL Dialect</label>
                   <select
+                    id="target-sql-dialect"
                     value={dialect}
                     onChange={(e) => setDialect(e.target.value as Dialect)}
-                    className="w-full h-9 px-2 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full h-9 px-2 text-xs rounded-md border border-white/20 bg-[#0a0a0a] text-white focus:outline-none focus:ring-2 focus:ring-white"
                   >
                     <option value="postgres">PostgreSQL / Redshift</option>
                     <option value="snowflake">Snowflake</option>
@@ -222,12 +250,13 @@ export default function DdlGeneratorPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium mb-1.5 block">Table Name</label>
+                  <label htmlFor="target-table-name" className="text-xs font-medium mb-1.5 block">Table Name</label>
                   <input
+                    id="target-table-name"
                     type="text"
                     value={tableName}
                     onChange={(e) => setTableName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
-                    className="w-full h-9 px-3 font-mono text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full h-9 px-3 font-mono text-xs rounded-md border border-white/20 bg-[#0a0a0a] text-white focus:outline-none focus:ring-2 focus:ring-white"
                   />
                 </div>
               </div>

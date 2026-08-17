@@ -27,11 +27,13 @@ function analyzeQuery(sql: string): { plan: AnalysisResult[]; hints: Optimizatio
   const tables = new Set<string>()
   const upper = sql.toUpperCase().trim()
 
-  // Extract table references
-  const fromMatch = upper.match(/FROM\s+(\w+)/)
-  const joinMatches = upper.matchAll(/JOIN\s+(\w+)/g)
-  if (fromMatch) tables.add(fromMatch[1])
-  for (const m of joinMatches) tables.add(m[1])
+  // Extract table references (supports schema-qualified tables like SCHEMA.TABLE)
+  const tableMatches = Array.from(sql.matchAll(/(?:FROM|JOIN)\s+([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)?)/gi))
+  for (const m of tableMatches) {
+    if (m[1] && !["SELECT", "WHERE", "GROUP", "ORDER", "JOIN", "ON", "LATERAL"].includes(m[1].toUpperCase())) {
+      tables.add(m[1].toUpperCase())
+    }
+  }
 
   // Check for SELECT *
   if (upper.includes("SELECT *")) {

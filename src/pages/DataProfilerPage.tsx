@@ -1,8 +1,31 @@
 import { useState, useMemo } from "react"
-import { BarChart3, Upload, AlertTriangle, CheckCircle2, Database, Table, HelpCircle } from "lucide-react"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
+import { Upload, AlertTriangle, CheckCircle2, Database, Table } from "lucide-react"
+
+// Quote-aware CSV line parser
+function parseCsvLine(line: string): string[] {
+  const result: string[] = []
+  let current = ""
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim())
+      current = ""
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result
+}
 
 const SAMPLE_PROFILER_CSV = `transaction_id,customer_id,amount,payment_method,status,created_at,note
 TX1001,CUST_881,149.99,credit_card,COMPLETED,2024-01-10 14:22:00,Standard order
@@ -36,11 +59,11 @@ export default function DataProfilerPage() {
     const lines = csvContent.trim().split("\n").map((l) => l.trim()).filter(Boolean)
     if (lines.length === 0) return null
 
-    const headers = lines[0].split(",").map((h) => h.replace(/^["']|["']$/g, "").trim())
+    const headers = parseCsvLine(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
     const rows: Record<string, string>[] = []
 
     for (let i = 1; i < lines.length; i++) {
-      const vals = lines[i].split(",").map((v) => v.replace(/^["']|["']$/g, "").trim())
+      const vals = parseCsvLine(lines[i]).map((v) => v.replace(/^["']|["']$/g, "").trim())
       const rowObj: Record<string, string> = {}
       headers.forEach((h, idx) => {
         rowObj[h] = vals[idx] ?? ""
@@ -114,12 +137,21 @@ export default function DataProfilerPage() {
         .slice(0, 3)
         .map(([value, count]) => ({ value, count }))
 
-      // Compute Numeric Stats
+      // Compute Numeric Stats (using iterative loop to avoid V8 call stack limits on large arrays)
       let minVal, maxVal, meanVal
       if (numericVals.length > 0) {
-        minVal = Math.min(...numericVals)
-        maxVal = Math.max(...numericVals)
-        meanVal = (numericVals.reduce((a, b) => a + b, 0) / numericVals.length).toFixed(2)
+        let sum = 0
+        let min = numericVals[0]
+        let max = numericVals[0]
+        for (let i = 0; i < numericVals.length; i++) {
+          const v = numericVals[i]
+          sum += v
+          if (v < min) min = v
+          if (v > max) max = v
+        }
+        minVal = min
+        maxVal = max
+        meanVal = (sum / numericVals.length).toFixed(2)
       }
 
       return {
@@ -147,11 +179,13 @@ export default function DataProfilerPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
+    reader.onerror = () => {}
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content) setCsvContent(content)
     }
     reader.readAsText(file)
+    e.target.value = ""
   }
 
   return (
@@ -189,12 +223,21 @@ export default function DataProfilerPage() {
           </label>
         </div>
         <textarea
+          id="profiler-csv-input"
+          aria-label="CSV Dataset Input"
           value={csvContent}
           onChange={(e) => setCsvContent(e.target.value)}
           className="w-full h-32 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white"
           placeholder="Paste CSV rows here..."
         />
       </div>
+
+      {/* Empty State when no content */}
+      {!profileResult && (
+        <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-12 text-center text-white/50 font-mono text-xs">
+          Paste CSV rows above or upload a CSV file to inspect dataset quality metrics.
+        </div>
+      )}
 
       {/* Profiling Report */}
       {profileResult && (

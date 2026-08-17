@@ -83,19 +83,24 @@ export default function SchemaDiffPage() {
       }
     })
 
+    // Auto-detect table name from DDL if not manually customized
+    const tableMatch = schemaA.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_.]+)/i) ||
+                       schemaB.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_.]+)/i)
+    const effectiveTableName = tableName.trim() || (tableMatch ? tableMatch[1].replace(/['"`]/g, "") : "target_table")
+
     // Generate ALTER TABLE Statements
-    let alterSql = `-- Migration SQL to upgrade Source -> Target\n`
+    let alterSql = `-- Migration SQL to upgrade Source -> Target (Table: ${effectiveTableName})\n`
     if (added.length === 0 && removed.length === 0 && modified.length === 0) {
       alterSql += `-- Schemas are identical. No migrations required.\n`
     } else {
       added.forEach((col) => {
-        alterSql += `ALTER TABLE ${tableName} ADD COLUMN ${col.name} ${col.type};\n`
+        alterSql += `ALTER TABLE ${effectiveTableName} ADD COLUMN ${col.name} ${col.type};\n`
       })
       modified.forEach((mod) => {
-        alterSql += `ALTER TABLE ${tableName} ALTER COLUMN ${mod.name} TYPE ${mod.newType};\n`
+        alterSql += `ALTER TABLE ${effectiveTableName} ALTER COLUMN ${mod.name} TYPE ${mod.newType};\n`
       })
       removed.forEach((col) => {
-        alterSql += `-- WARNING: Destructive Action\nALTER TABLE ${tableName} DROP COLUMN ${col.name};\n`
+        alterSql += `-- WARNING: Destructive Action\nALTER TABLE ${effectiveTableName} DROP COLUMN ${col.name};\n`
       })
     }
 
@@ -103,7 +108,7 @@ export default function SchemaDiffPage() {
   }, [schemaA, schemaB, tableName])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(diffResult.alterSql)
+    navigator.clipboard.writeText(diffResult.alterSql).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -156,9 +161,21 @@ export default function SchemaDiffPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column Breakdown */}
         <div className="lg:col-span-2 rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
-          <div className="border-b border-white/10 pb-3">
-            <h2 className="text-base font-semibold text-white">Schema Comparison Summary</h2>
-            <p className="text-xs text-white/60">Structural changes detected between schemas.</p>
+          <div className="border-b border-white/10 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-white">Schema Comparison Summary</h2>
+              <p className="text-xs text-white/60">Structural changes detected between schemas.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-white/60">Table:</span>
+              <input
+                type="text"
+                value={tableName}
+                onChange={(e) => setTableName(e.target.value)}
+                placeholder="Target table..."
+                className="bg-[#0a0a0a] border border-white/20 rounded px-2.5 py-1 text-xs font-mono text-white w-32 focus:outline-none focus:border-white/50"
+              />
+            </div>
           </div>
           <div className="space-y-4">
             <div className="flex gap-2">

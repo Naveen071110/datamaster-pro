@@ -1,7 +1,5 @@
 import { useState, useMemo } from "react"
-import { AlignLeft, Copy, Check, Sparkles, RefreshCw } from "lucide-react"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
+import { Copy, Check, RotateCcw } from "lucide-react"
 
 const SAMPLE_UNFORMATTED_SQL = `select e.id, e.first_name, e.last_name, d.department_name, sum(s.salary_amount) as total_earned from employees e join departments d on e.department_id = d.id join salaries s on e.id = s.employee_id where e.is_active = true and s.payment_date >= '2023-01-01' group by e.id, e.first_name, e.last_name, d.department_name having sum(s.salary_amount) > 50000 order by total_earned desc limit 50;`
 
@@ -20,26 +18,24 @@ export default function SqlFormatterPage() {
   const [indentSpaces, setIndentSpaces] = useState("2")
   const [copied, setCopied] = useState(false)
 
-  // Pure Client-side SQL Formatter
+  // Pure Client-side SQL Formatter with string literal shielding
   const formattedSql = useMemo(() => {
     if (!rawSql.trim()) return ""
 
-    let sql = rawSql.trim()
+    // 1. Shield string literals
+    const strings: string[] = []
+    let sql = rawSql.replace(/'(?:''|[^'])*'/g, (match) => {
+      strings.push(match)
+      return `__STR_LITERAL_${strings.length - 1}__`
+    })
 
-    // 1. Keyword capitalization
-    if (uppercaseKeywords) {
-      SQL_KEYWORDS.forEach((kw) => {
-        const regex = new RegExp(`\\b${kw}\\b`, "gi")
-        sql = sql.replace(regex, kw)
-      })
-    } else {
-      SQL_KEYWORDS.forEach((kw) => {
-        const regex = new RegExp(`\\b${kw}\\b`, "gi")
-        sql = sql.replace(regex, kw.toLowerCase())
-      })
-    }
+    // 2. Keyword capitalization
+    SQL_KEYWORDS.forEach((kw) => {
+      const regex = new RegExp(`\\b${kw}\\b`, "gi")
+      sql = sql.replace(regex, uppercaseKeywords ? kw : kw.toLowerCase())
+    })
 
-    // 2. Line Breaks around Clauses
+    // 3. Line Breaks around Clauses
     const mainClauses = [
       "SELECT", "FROM", "WHERE", "GROUP BY", "HAVING", "ORDER BY", "LIMIT",
       "JOIN", "LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "FULL OUTER JOIN", "WITH",
@@ -49,21 +45,26 @@ export default function SqlFormatterPage() {
     const spaces = " ".repeat(Number(indentSpaces))
 
     mainClauses.forEach((clause) => {
-      const regex = new RegExp(`\\s+\\b(${clause})\\b`, uppercaseKeywords ? "g" : "gi")
+      const regex = new RegExp(`\\s+\\b(${clause})\\b`, "gi")
       sql = sql.replace(regex, `\n$1`)
     })
 
-    // 3. Format Sub-clauses & Commas
+    // 4. Format Sub-clauses & Commas
     sql = sql.replace(/\s*,\s*/g, `,\n${spaces}`)
     sql = sql.replace(/\s+ON\s+/gi, `\n${spaces}ON `)
     sql = sql.replace(/\s+AND\s+/gi, `\n${spaces}AND `)
     sql = sql.replace(/\s+OR\s+/gi, `\n${spaces}OR `)
 
+    // 5. Restore string literals
+    strings.forEach((str, idx) => {
+      sql = sql.replace(`__STR_LITERAL_${idx}__`, str)
+    })
+
     return sql
   }, [rawSql, uppercaseKeywords, indentSpaces])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(formattedSql)
+    navigator.clipboard.writeText(formattedSql).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -93,42 +94,55 @@ export default function SqlFormatterPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Card */}
         <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-3 flex flex-col shadow-xl">
-          <h2 className="text-base font-semibold text-white">1. Raw SQL Input</h2>
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-base font-semibold text-white">1. Raw SQL Input</h2>
+            <button
+              type="button"
+              onClick={() => setRawSql("")}
+              className="text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>Clear</span>
+            </button>
+          </div>
           <p className="text-xs text-white/60">Paste single-line or unformatted SQL statements.</p>
           <textarea
+            id="raw-sql-input"
+            aria-label="Raw SQL Input"
             value={rawSql}
             onChange={(e) => setRawSql(e.target.value)}
             className="w-full h-72 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white resize-none focus:outline-none focus:ring-1 focus:ring-white leading-relaxed"
             placeholder="SELECT * FROM table..."
           />
 
-            {/* Options */}
-            <div className="pt-3 border-t border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="uppercase-kw"
-                  checked={uppercaseKeywords}
-                  onChange={(e) => setUppercaseKeywords(e.target.checked)}
-                  className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
-                />
-                <label htmlFor="uppercase-kw" className="text-xs cursor-pointer">
-                  UPPERCASE Keywords
-                </label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium">Indentation:</span>
-                <select
-                  value={indentSpaces}
-                  onChange={(e) => setIndentSpaces(e.target.value)}
-                  className="h-8 px-2 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="2">2 spaces</option>
-                  <option value="4">4 spaces</option>
-                </select>
-              </div>
+          {/* Options */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="uppercase-kw"
+                checked={uppercaseKeywords}
+                onChange={(e) => setUppercaseKeywords(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-[#0a0a0a] text-white focus:ring-white"
+              />
+              <label htmlFor="uppercase-kw" className="text-xs cursor-pointer text-white/80">
+                UPPERCASE Keywords
+              </label>
             </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="indent-spaces-select" className="text-xs font-medium text-white/80">Indentation:</label>
+              <select
+                id="indent-spaces-select"
+                value={indentSpaces}
+                onChange={(e) => setIndentSpaces(e.target.value)}
+                className="h-8 px-2 text-xs rounded-md border border-white/20 bg-[#0a0a0a] text-white focus:outline-none focus:ring-1 focus:ring-white"
+              >
+                <option value="2">2 spaces</option>
+                <option value="4">4 spaces</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Output Card */}
@@ -145,7 +159,7 @@ export default function SqlFormatterPage() {
           </div>
           <p className="text-xs text-white/60">Standardized SQL syntax.</p>
           <pre className="w-full h-full min-h-[340px] p-4 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white overflow-auto whitespace-pre-wrap leading-relaxed">
-            <code>{formattedSql}</code>
+            <code>{formattedSql || "-- Formatted SQL query will appear here..."}</code>
           </pre>
         </div>
       </div>

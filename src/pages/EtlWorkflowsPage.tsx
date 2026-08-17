@@ -16,12 +16,9 @@ import {
 } from "reactflow"
 import "reactflow/dist/style.css"
 import { Play, Pause, RotateCcw, Maximize, Minimize, Database, GitBranch, Wrench, Table2, Cpu, Info } from "lucide-react"
-import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
-import { Card, CardContent } from "@/shared/components/ui/card"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import { Button } from "@/shared/components/ui/button"
 import { cn } from "@/shared/utils/cn"
-import { EmptyState } from "@/shared/components/EmptyState"
 import { workflowPresets } from "@/content/workflow-presets"
 
 function SourceNode({ data }: NodeProps) {
@@ -133,6 +130,17 @@ export default function EtlWorkflowsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPresetId])
 
+  // Exit fullscreen on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && fullscreen) {
+        setFullscreen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [fullscreen])
+
   const handleSelectPreset = (id: string) => {
     if (simIntervalRef.current) clearInterval(simIntervalRef.current)
     setSimulating(false)
@@ -219,8 +227,21 @@ export default function EtlWorkflowsPage() {
       setSimStep(step)
     }, 1200)
 
-    simIntervalRef.current
+    return () => {
+      if (simIntervalRef.current) {
+        clearInterval(simIntervalRef.current)
+      }
+    }
   }, [simulating, simStep, selectedPreset, setEdges, setNodes])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (simIntervalRef.current) {
+        clearInterval(simIntervalRef.current)
+      }
+    }
+  }, [])
 
   const resetSimulation = useCallback(() => {
     if (simIntervalRef.current) clearInterval(simIntervalRef.current)
@@ -261,8 +282,17 @@ export default function EtlWorkflowsPage() {
           {workflowPresets.map((preset) => (
             <div
               key={preset.id}
-              className="cursor-pointer hover:border-white/40 hover:bg-white/15 transition-all duration-300 border border-white/15 bg-white/10 backdrop-blur-md rounded-xl p-5 flex flex-col justify-between group"
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${preset.name} workflow`}
+              className="cursor-pointer hover:border-white/40 hover:bg-white/15 transition-all duration-300 border border-white/15 bg-white/10 backdrop-blur-md rounded-xl p-5 flex flex-col justify-between group focus:outline-none focus:ring-2 focus:ring-white"
               onClick={() => handleSelectPreset(preset.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleSelectPreset(preset.id)
+                }
+              }}
             >
               <div>
                 <div className="flex items-center gap-2 mb-2">

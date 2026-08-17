@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react"
-import { Code2, Copy, Check, Terminal, Sparkles, AlertCircle, HelpCircle } from "lucide-react"
+import { Code2, Copy, Check, Terminal } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
 import Editor from "@monaco-editor/react"
 
 const SAMPLE_EXPRESSION = `IIF(ISNULL(SALES_AMT), 0, SALES_AMT) + 
@@ -30,6 +29,170 @@ const EXAMPLES = [
 
 type TargetDialect = "snowflake" | "postgres" | "db2" | "oracle" | "bigquery"
 
+// Helper to split top-level comma arguments while respecting nested parentheses and string literals
+function splitTopLevelArgs(str: string): string[] {
+  const args: string[] = []
+  let depth = 0
+  let inString = false
+  let stringChar = ""
+  let current = ""
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i]
+
+    if (inString) {
+      current += char
+      if (char === stringChar && str[i - 1] !== "\\") {
+        inString = false
+      }
+    } else if (char === "'" || char === '"') {
+      inString = true
+      stringChar = char
+      current += char
+    } else if (char === "(") {
+      depth++
+      current += char
+    } else if (char === ")") {
+      depth--
+      current += char
+    } else if (char === "," && depth === 0) {
+      args.push(current.trim())
+      current = ""
+    } else {
+      current += char
+    }
+  }
+  if (current.trim()) {
+    args.push(current.trim())
+  }
+  return args
+}
+
+function transpileInformaticaExpression(input: string, dialect: TargetDialect): string {
+  let result = input
+
+  function transformFunctionCalls(str: string, fnName: string, transformer: (args: string[]) => string): string {
+    let output = ""
+    let pos = 0
+
+    while (pos < str.length) {
+      const upperStr = str.toUpperCase()
+      const searchTarget = fnName.toUpperCase() + "("
+      const idx = upperStr.indexOf(searchTarget, pos)
+      if (idx === -1) {
+        output += str.slice(pos)
+        break
+      }
+
+      // Ensure not part of another word
+      if (idx > 0 && /[A-Za-z0-9_]/.test(str[idx - 1])) {
+        output += str.slice(pos, idx + searchTarget.length)
+        pos = idx + searchTarget.length
+        continue
+      }
+
+      output += str.slice(pos, idx)
+      const startParen = idx + fnName.length
+      let depth = 1
+      let endParen = -1
+      let inString = false
+      let stringChar = ""
+
+      for (let i = startParen + 1; i < str.length; i++) {
+        const char = str[i]
+        if (inString) {
+          if (char === stringChar && str[i - 1] !== "\\") inString = false
+        } else if (char === "'" || char === '"') {
+          inString = true
+          stringChar = char
+        } else if (char === "(") {
+          depth++
+        } else if (char === ")") {
+          depth--
+          if (depth === 0) {
+            endParen = i
+            break
+          }
+        }
+      }
+
+      if (endParen !== -1) {
+        const insideArgs = str.slice(startParen + 1, endParen)
+        const innerTranspiled = transpileInformaticaExpression(insideArgs, dialect)
+        const args = splitTopLevelArgs(innerTranspiled)
+        output += transformer(args)
+        pos = endParen + 1
+      } else {
+        output += str.slice(idx)
+        break
+      }
+    }
+    return output
+  }
+
+  // 1. IIF(cond, trueVal, falseVal) -> CASE WHEN
+  result = transformFunctionCalls(result, "IIF", (args) => {
+    if (args.length >= 3) {
+      return `CASE WHEN ${args[0]} THEN ${args[1]} ELSE ${args[2]} END`
+    } else if (args.length === 2) {
+      return `CASE WHEN ${args[0]} THEN ${args[1]} ELSE NULL END`
+    }
+    return `IIF(${args.join(", ")})`
+  })
+
+  // 2. DECODE(val, s1, r1, s2, r2, def) -> CASE
+  result = transformFunctionCalls(result, "DECODE", (args) => {
+    if (args.length >= 3) {
+      const col = args[0]
+      let sql = `CASE ${col}`
+      for (let i = 1; i < args.length - 1; i += 2) {
+        sql += ` WHEN ${args[i]} THEN ${args[i + 1]}`
+      }
+      if (args.length % 2 === 0) {
+        sql += ` ELSE ${args[args.length - 1]}`
+      }
+      sql += ` END`
+      return sql
+    }
+    return `DECODE(${args.join(", ")})`
+  })
+
+  // 3. ISNULL(x) -> (x IS NULL)
+  result = transformFunctionCalls(result, "ISNULL", (args) => {
+    return `${args[0]} IS NULL`
+  })
+
+  // 4. ADD_TO_DATE
+  result = transformFunctionCalls(result, "ADD_TO_DATE", (args) => {
+    const dateCol = args[0] || "CURRENT_DATE"
+    const unit = (args[1] || "'DD'").replace(/['"]/g, "").toUpperCase()
+    const amount = args[2] || "0"
+
+    if (dialect === "postgres") {
+      return `(${dateCol} + (${amount}) * INTERVAL '1 ${unit === "MM" ? "month" : unit === "YY" ? "year" : "day"}')`
+    } else if (dialect === "snowflake") {
+      return `DATEADD(${unit}, ${amount}, ${dateCol})`
+    } else if (dialect === "oracle") {
+      return unit === "MM" ? `ADD_MONTHS(${dateCol}, ${amount})` : `(${dateCol} + ${amount})`
+    } else if (dialect === "bigquery") {
+      return `DATE_ADD(${dateCol}, INTERVAL ${amount} ${unit === "MM" ? "MONTH" : unit === "YY" ? "YEAR" : "DAY"})`
+    } else {
+      // db2
+      return `(${dateCol} + (${amount}) ${unit === "MM" ? "MONTHS" : unit === "YY" ? "YEARS" : "DAYS"})`
+    }
+  })
+
+  // 5. TO_CHAR
+  result = transformFunctionCalls(result, "TO_CHAR", (args) => {
+    if (dialect === "db2") return `VARCHAR_FORMAT(${args.join(", ")})`
+    if (dialect === "snowflake") return `TO_VARCHAR(${args.join(", ")})`
+    if (dialect === "bigquery") return `FORMAT_DATE(${args[1] || "'%Y-%m-%d'"}, ${args[0]})`
+    return `TO_CHAR(${args.join(", ")})`
+  })
+
+  return result
+}
+
 export default function InformaticaExpressionTranspilerPage() {
   const [exprInput, setExprInput] = useState(SAMPLE_EXPRESSION)
   const [dialect, setDialect] = useState<TargetDialect>("db2")
@@ -38,49 +201,11 @@ export default function InformaticaExpressionTranspilerPage() {
   // Transpile Informatica PowerCenter Expression to Target SQL
   const transpiledOutput = useMemo(() => {
     if (!exprInput.trim()) return ""
-
-    let sql = exprInput
-
-    // IIF(ISNULL(x), a, b) -> COALESCE(x, a)
-    sql = sql.replace(/IIF\s*\(\s*ISNULL\((.*?)\)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "COALESCE($1, $2)")
-
-    // IIF(condition, trueVal, falseVal) -> CASE WHEN condition THEN trueVal ELSE falseVal END
-    sql = sql.replace(/IIF\s*\(\s*([\s\S]*?)\s*,\s*([\s\S]*?)\s*,\s*([\s\S]*?)\)/gi, "CASE WHEN $1 THEN $2 ELSE $3 END")
-
-    // ISNULL(val) -> val IS NULL
-    sql = sql.replace(/ISNULL\((.*?)\)/gi, "$1 IS NULL")
-
-    // DECODE(val, search1, result1, search2, result2, defaultResult) -> CASE val WHEN search1 THEN result1 WHEN search2 THEN result2 ELSE defaultResult END
-    sql = sql.replace(/DECODE\s*\(\s*(\w+)\s*,\s*([\s\S]*?)\)/gi, (_, col, body) => {
-      const parts = body.split(",").map((p: string) => p.trim())
-      let caseSql = `CASE ${col}\n`
-      for (let i = 0; i < parts.length - 1; i += 2) {
-        caseSql += `  WHEN ${parts[i]} THEN ${parts[i + 1]}\n`
-      }
-      if (parts.length % 2 === 1) {
-        caseSql += `  ELSE ${parts[parts.length - 1]}\n`
-      }
-      caseSql += `END`
-      return caseSql
-    })
-
-    // Dialect-specific function conversions
-    if (dialect === "db2") {
-      sql = sql.replace(/SUBSTR\(/gi, "SUBSTR(")
-      sql = sql.replace(/ADD_TO_DATE\((.*?),\s*'DD'\s*,\s*(.*?)\)/gi, "$1 + $2 DAYS")
-      sql = sql.replace(/TO_CHAR\(/gi, "VARCHAR_FORMAT(")
-    } else if (dialect === "snowflake") {
-      sql = sql.replace(/ADD_TO_DATE\((.*?),\s*'(.*?)'\s*,\s*(.*?)\)/gi, "DATEADD($2, $3, $1)")
-      sql = sql.replace(/TO_CHAR\(/gi, "TO_VARCHAR(")
-    } else if (dialect === "postgres") {
-      sql = sql.replace(/ADD_TO_DATE\((.*?),\s*'DD'\s*,\s*(.*?)\)/gi, "$1 + INTERVAL '$2 days'")
-    }
-
-    return sql
+    return transpileInformaticaExpression(exprInput, dialect)
   }, [exprInput, dialect])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(transpiledOutput)
+    navigator.clipboard.writeText(transpiledOutput).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

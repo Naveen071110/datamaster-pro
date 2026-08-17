@@ -17,6 +17,9 @@ import {
   Database,
   FileCode2,
   DollarSign,
+  Cloud,
+  Layers,
+  Workflow,
 } from "lucide-react"
 
 const microSaasTools = [
@@ -85,18 +88,39 @@ const microSaasTools = [
   },
 ]
 
-const informaticaTools = [
+const etlCloudTools = [
+  {
+    path: "/snowflake-stage-generator",
+    icon: Cloud,
+    title: "10. Snowflake Stage & COPY Synthesizer",
+    description: "Synthesize Snowflake External/Internal Stages, File Formats, COPY INTO statements, Snowpipes, and compute cost estimates.",
+    badge: "Snowflake Modern Lakehouse"
+  },
+  {
+    path: "/dbt-model-generator",
+    icon: Layers,
+    title: "11. dbt Model & YAML Schema Synthesizer",
+    description: "Convert raw SQL queries into enterprise dbt SQL models with `source()`, `ref()`, and automated `schema.yml` tests and docs.",
+    badge: "dbt (data build tool)"
+  },
+  {
+    path: "/airflow-dag-generator",
+    icon: Workflow,
+    title: "12. Apache Airflow Python DAG Generator",
+    description: "Generate production Airflow 2.x Python DAGs with operator task chains (`>>`), retry policies, and interactive cron validation.",
+    badge: "Airflow Workflow Engine"
+  },
   {
     path: "/informatica-mapping-to-sql",
     icon: FileCode2,
-    title: "10. Informatica XML Mapping to SQL Converter",
-    description: "Convert Informatica PowerCenter mapping XML files into precise, executable SQL CTE queries and bind parameter files.",
+    title: "13. Informatica XML Mapping to SQL Converter",
+    description: "Convert Informatica PowerCenter mapping XML files into precise, executable SQL CTE queries and bind `.par` parameter files.",
     badge: "PowerCenter & IICS"
   },
   {
     path: "/informatica-expression-transpiler",
     icon: Code2,
-    title: "11. Informatica Expression Transpiler",
+    title: "14. Informatica Expression Transpiler",
     description: "Validate and convert complex Informatica transformation functions (IIF, DECODE, ISNULL, ADD_TO_DATE) into database SQL.",
     badge: "Expression Validator"
   },
@@ -106,51 +130,37 @@ const diagnosticsTools = [
   {
     path: "/performance-analyzer",
     icon: Gauge,
-    title: "12. Query Performance Analyzer",
+    title: "15. Query Performance Analyzer",
     description: "Analyze SQL execution plans, spot full table scans or Cartesian joins, and get actionable performance hints.",
     badge: "Execution Plan Hints"
   },
   {
     path: "/schema-validator",
     icon: ShieldCheck,
-    title: "13. Schema Validator & Linter",
+    title: "16. Schema Validator & Linter",
     description: "Audit DDL schemas for anti-patterns, missing primary keys, unindexed foreign keys, and bad naming conventions.",
     badge: "Schema Linter"
   },
   {
     path: "/qa",
     icon: HelpCircle,
-    title: "14. Data QA Checks & Assertions",
+    title: "17. Data QA Checks & Assertions",
     description: "Run automated data quality tests, validate column nullability, unique key constraints, and numeric ranges.",
     badge: "Data Assertion Suite"
   },
   {
     path: "/troubleshooting",
     icon: Wrench,
-    title: "15. Pipeline & SQL Debugger",
+    title: "18. Pipeline & SQL Debugger",
     description: "Troubleshoot common data engineering errors, SQL execution failures, WASM memory issues, and pipeline bottlenecks.",
     badge: "Interactive Debugger"
   },
   {
     path: "/db2-sas-ddl-generator",
     icon: Database,
-    title: "16. DB2 & SAS Parameter Resolver",
+    title: "19. DB2 & SAS Parameter Resolver",
     description: "Substitute DB2 host variables (:dept_no) and SAS macro variables (&START_DT) with parameter file values into runnable queries.",
     badge: "Host Variable Resolver"
-  },
-  {
-    path: "/aqt-sql-transpiler",
-    icon: GitCompare,
-    title: "17. AQT & DB2 SQL Transpiler",
-    description: "Convert Advanced Query Tool (AQT) scripts and DB2 syntax (FETCH FIRST, WITH RR, CURRENT DATE) to Snowflake/Postgres.",
-    badge: "AQT Transpiler"
-  },
-  {
-    path: "/db2-procedure-to-pyspark",
-    icon: FileCode,
-    title: "18. DB2 Procedure to PySpark Converter",
-    description: "Transpile legacy DB2 SQL PL stored procedures and Oracle PL/SQL blocks into modern Databricks PySpark DataFrame code.",
-    badge: "Spark Migration"
   },
 ]
 
@@ -164,7 +174,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="inline-flex items-center border-l-2 border-white bg-white/15 px-3 py-1.5 backdrop-blur-md">
             <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-              Developer Workbench • 18 Active Tools
+              Developer Workbench • 19 Active Tools
             </span>
           </div>
 
@@ -178,30 +188,30 @@ export default function HomePage() {
 
         <div className="max-w-3xl space-y-3">
           <h1 className="text-3xl sm:text-5xl font-normal leading-[1.1] tracking-tight text-white drop-shadow-lg">
-            Informatica. Diagnostics.
+            Snowflake. dbt. Airflow.
             <br />
-            Data Engineering Suite.
+            ETL & Data Engineering Suite.
           </h1>
           <p className="text-white/80 text-base sm:text-lg leading-relaxed drop-shadow max-w-2xl">
-            Welcome to DataMaster Pro. A complete 18-tool workbench featuring a dedicated Informatica Suite, Micro-SaaS Utilities, and Diagnostics & QA tools.
+            Welcome to DataMaster Pro. A unified developer workbench for modern data teams covering Snowflake, dbt, Apache Airflow, Informatica, and Diagnostics & QA.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 pt-2">
           <button
-            onClick={() => navigate("/test-data-generator")}
+            onClick={() => navigate("/snowflake-stage-generator")}
             className="rounded-full bg-white px-6 py-3 text-xs sm:text-sm font-medium text-black hover:bg-white/85 transition-colors duration-300 inline-flex items-center gap-2 shadow-lg"
           >
-            <Sparkles className="h-4 w-4" />
-            <span>Generate Mock Data</span>
+            <Cloud className="h-4 w-4" />
+            <span>Snowflake & Cloud Tools</span>
             <ChevronRight className="h-4 w-4" />
           </button>
           <button
-            onClick={() => navigate("/currency-converter")}
+            onClick={() => navigate("/dbt-model-generator")}
             className="rounded-full border border-white/25 bg-white/10 backdrop-blur-md px-6 py-3 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors duration-300 inline-flex items-center gap-2"
           >
-            <DollarSign className="h-4 w-4 text-sky-400" />
-            <span>Live FX & Rates</span>
+            <Layers className="h-4 w-4 text-orange-400" />
+            <span>dbt Model Synthesizer</span>
           </button>
         </div>
       </div>
@@ -223,8 +233,12 @@ export default function HomePage() {
             return (
               <div
                 key={tool.path}
+                role="link"
+                tabIndex={0}
+                aria-label={`Open ${tool.title}`}
                 onClick={() => navigate(tool.path)}
-                className="cursor-pointer group rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-6 hover:bg-white/15 hover:border-white/30 transition-all duration-300 flex flex-col justify-between"
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(tool.path); } }}
+                className="cursor-pointer group rounded-xl border border-white/15 bg-white/10 backdrop-blur-md p-6 hover:bg-white/15 hover:border-white/30 transition-all duration-300 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-white"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -258,41 +272,45 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Section 2: Informatica Suite (2 Tools) — DEDICATED STANDALONE SECTION */}
+      {/* Section 2: ETL & Cloud Data Suite (5 Tools: Snowflake, dbt, Airflow, Informatica) */}
       <div className="space-y-6 pt-4">
-        <div className="flex items-center justify-between border-b border-purple-500/20 pb-4">
-          <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-purple-400 flex items-center gap-2">
-            <span>Informatica Suite</span>
+        <div className="flex items-center justify-between border-b border-sky-500/20 pb-4">
+          <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-sky-400 flex items-center gap-2">
+            <span>ETL & Cloud Data Suite</span>
           </h2>
-          <span className="font-mono text-xs text-purple-400/60 uppercase tracking-[0.15em]">
-            2 PowerCenter & IICS Tools
+          <span className="font-mono text-xs text-sky-400/60 uppercase tracking-[0.15em]">
+            5 Modern ETL & Pipeline Tools
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
-          {informaticaTools.map((tool) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {etlCloudTools.map((tool) => {
             const Icon = tool.icon
             return (
               <div
                 key={tool.path}
+                role="link"
+                tabIndex={0}
+                aria-label={`Open ${tool.title}`}
                 onClick={() => navigate(tool.path)}
-                className="cursor-pointer group rounded-xl border border-purple-500/20 bg-purple-950/10 backdrop-blur-md p-6 hover:bg-purple-950/20 hover:border-purple-500/40 transition-all duration-300 flex flex-col justify-between"
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(tool.path); } }}
+                className="cursor-pointer group rounded-xl border border-sky-500/20 bg-sky-950/10 backdrop-blur-md p-6 hover:bg-sky-950/20 hover:border-sky-500/40 transition-all duration-300 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400">
+                    <div className="p-3 rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-400">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-purple-400/80 border border-purple-500/20 px-2.5 py-1 rounded bg-purple-500/5">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-sky-400/80 border border-sky-500/20 px-2.5 py-1 rounded bg-sky-500/5">
                       {tool.badge}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-purple-300 transition-colors">
+                    <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-sky-300 transition-colors">
                       {tool.title}
                     </h3>
-                    <ChevronRight className="h-4 w-4 text-white/40 group-hover:text-purple-400 group-hover:translate-x-1 transition-transform duration-300" />
+                    <ChevronRight className="h-4 w-4 text-white/40 group-hover:text-sky-400 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
 
                   <p className="text-xs leading-relaxed text-white/70 mt-2.5">
@@ -300,9 +318,9 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-purple-400/60 group-hover:text-purple-300">
-                  <span>/ OPEN INFORMATICA TOOL</span>
-                  <Sparkles className="h-3.5 w-3.5 text-purple-400/50" />
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-sky-400/60 group-hover:text-sky-300">
+                  <span>/ OPEN PIPELINE TOOL</span>
+                  <Sparkles className="h-3.5 w-3.5 text-sky-400/50" />
                 </div>
               </div>
             )
@@ -310,14 +328,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Section 3: Diagnostics & QA Suite (7 Tools) */}
+      {/* Section 3: Diagnostics & QA Suite (5 Tools) */}
       <div className="space-y-6 pt-4">
         <div className="flex items-center justify-between border-b border-emerald-500/20 pb-4">
           <h2 className="text-xl sm:text-2xl font-medium tracking-tight text-emerald-400 flex items-center gap-2">
             <span>Diagnostics & QA Suite</span>
           </h2>
           <span className="font-mono text-xs text-emerald-400/60 uppercase tracking-[0.15em]">
-            7 Quality & Diagnostic Tools
+            5 Quality & Diagnostic Tools
           </span>
         </div>
 
@@ -327,8 +345,12 @@ export default function HomePage() {
             return (
               <div
                 key={tool.path}
+                role="link"
+                tabIndex={0}
+                aria-label={`Open ${tool.title}`}
                 onClick={() => navigate(tool.path)}
-                className="cursor-pointer group rounded-xl border border-emerald-500/20 bg-emerald-950/10 backdrop-blur-md p-6 hover:bg-emerald-950/20 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between"
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(tool.path); } }}
+                className="cursor-pointer group rounded-xl border border-emerald-500/20 bg-emerald-950/10 backdrop-blur-md p-6 hover:bg-emerald-950/20 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">

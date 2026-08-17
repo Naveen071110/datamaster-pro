@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from "react"
-import { Play, RotateCcw, Database, History, Loader2, AlertCircle, Save, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
+import { Play, RotateCcw, Database, History, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
 import { ErrorState } from "@/shared/components/ErrorState"
 import { EmptyState } from "@/shared/components/EmptyState"
 import { QueryEditor } from "@/features/sql-sandbox/components/QueryEditor"
@@ -12,7 +11,7 @@ import { useAppStore } from "@/stores"
 
 export default function SqlSandboxPage() {
   const {
-    queryTabs, activeTabId, queryHistory, databaseReady, databaseError,
+    queryTabs, activeTabId, queryHistory,
     addTab, closeTab, setActiveTab, updateTabSql,
     setTabResult, setTabError, setTabExecuting, setTabExecutionTime,
     addToHistory, clearResults, setDatabaseReady, setDatabaseError,
@@ -35,11 +34,9 @@ export default function SqlSandboxPage() {
       try {
         const { getDatabase, getSchema } = await import("@/features/sql-sandbox/utils/initDatabase")
         const database = await getDatabase()
-        setDb(() => {
-          const s = getSchema(database)
-          setSchema(s)
-          return database
-        })
+        const s = getSchema(database)
+        setDb(database)
+        setSchema(s)
         setDatabaseReady(true)
         setIsInitializing(false)
 
@@ -139,23 +136,33 @@ export default function SqlSandboxPage() {
     const file = e.target.files?.[0]
     if (!file || !db) return
     const reader = new FileReader()
+    reader.onerror = () => {
+      if (activeTabId) {
+        setTabError(activeTabId, "Failed to read CSV file from disk.")
+      }
+    }
     reader.onload = async (evt) => {
       const content = evt.target?.result as string
       if (!content) return
       try {
         const { createTableFromCsv, getSchema } = await import("@/features/sql-sandbox/utils/initDatabase")
-        const rawName = file.name.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9_]/g, "_")
-        const { tableName, rowCount } = createTableFromCsv(db, rawName, content)
+        let rawName = file.name.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9_]/g, "_")
+        if (/^[0-9]/.test(rawName)) rawName = "tbl_" + rawName
+        const { tableName, rowCount } = createTableFromCsv(db, rawName || "imported_csv", content)
         const updatedSchema = getSchema(db)
         setSchema(updatedSchema)
         if (activeTabId) {
           updateTabSql(activeTabId, `-- Table '${tableName}' created with ${rowCount} rows\nSELECT * FROM ${tableName} LIMIT 20;`)
+          setTabError(activeTabId, "")
         }
       } catch (err) {
-        alert("Failed to parse CSV file: " + (err instanceof Error ? err.message : "Unknown error"))
+        if (activeTabId) {
+          setTabError(activeTabId, "Failed to parse CSV: " + (err instanceof Error ? err.message : "Unknown error"))
+        }
       }
     }
     reader.readAsText(file)
+    e.target.value = ""
   }
 
   return (
@@ -389,8 +396,17 @@ export default function SqlSandboxPage() {
           {queryHistory.slice(0, 5).map((entry) => (
             <div
               key={entry.id}
-              className="px-4 py-1 text-xs text-muted-foreground hover:bg-muted/20 cursor-pointer border-t border-border/30 flex items-center justify-between"
+              role="button"
+              tabIndex={0}
+              aria-label={`Load previous query: ${entry.sql}`}
+              className="px-4 py-1 text-xs text-muted-foreground hover:bg-muted/20 cursor-pointer border-t border-border/30 flex items-center justify-between focus:outline-none focus:bg-muted/30"
               onClick={() => handleSetExampleQuery(entry.sql)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleSetExampleQuery(entry.sql)
+                }
+              }}
             >
               <code className="truncate max-w-[60%] font-mono">{entry.sql}</code>
               <span className="text-[10px] shrink-0">

@@ -11,14 +11,10 @@ import {
   Terminal,
   Database,
   Search,
-  Filter,
-  Sliders,
-  Play,
   Layers,
   Globe,
   ShoppingBag,
   Users,
-  Building,
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
@@ -96,13 +92,20 @@ export default function TestDataGeneratorPage() {
   // Remote API State
   const [remoteRecords, setRemoteRecords] = useState<Record<string, any>[]>([])
   const [loadingRemote, setLoadingRemote] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   // Fetch Remote API records when DummyJSON or RandomUser.me is active
   useEffect(() => {
+    const controller = new AbortController()
+    setApiError(null)
+
     if (dataSource === "dummyjson") {
       setLoadingRemote(true)
-      fetch(`https://dummyjson.com/${dummyResource}?limit=${Math.min(rowCount, 100)}`)
-        .then((res) => res.json())
+      fetch(`https://dummyjson.com/${dummyResource}?limit=${Math.min(rowCount, 100)}`, { signal: controller.signal })
+        .then((res) => {
+          if (!res.ok) throw new Error(`DummyJSON API returned HTTP ${res.status}`)
+          return res.json()
+        })
         .then((data) => {
           const list = data[dummyResource] || []
           // Flatten nested fields for clean tabular rendering
@@ -121,13 +124,19 @@ export default function TestDataGeneratorPage() {
           setTableName(`dummyjson_${dummyResource}`)
           setLoadingRemote(false)
         })
-        .catch(() => {
-          setLoadingRemote(false)
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            setApiError(err instanceof Error ? err.message : "Failed to fetch DummyJSON data")
+            setLoadingRemote(false)
+          }
         })
     } else if (dataSource === "randomuser") {
       setLoadingRemote(true)
-      fetch(`https://randomuser.me/api/?results=${Math.min(rowCount, 100)}&seed=${randomUserSeed}`)
-        .then((res) => res.json())
+      fetch(`https://randomuser.me/api/?results=${Math.min(rowCount, 100)}&seed=${randomUserSeed}`, { signal: controller.signal })
+        .then((res) => {
+          if (!res.ok) throw new Error(`RandomUser API returned HTTP ${res.status}`)
+          return res.json()
+        })
         .then((data) => {
           const users = (data.results || []).map((u: any, idx: number) => ({
             user_id: 1000 + idx + 1,
@@ -149,9 +158,16 @@ export default function TestDataGeneratorPage() {
           setTableName("randomuser_demographics")
           setLoadingRemote(false)
         })
-        .catch(() => {
-          setLoadingRemote(false)
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            setApiError(err instanceof Error ? err.message : "Failed to fetch RandomUser data")
+            setLoadingRemote(false)
+          }
         })
+    }
+
+    return () => {
+      controller.abort()
     }
   }, [dataSource, dummyResource, randomUserSeed, rowCount, generationSeed])
 
@@ -348,7 +364,7 @@ export default function TestDataGeneratorPage() {
 
   const handleCopy = () => {
     const text = outputFormat === "json" ? jsonOutput : outputFormat === "sql" ? sqlOutput : csvOutput
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(text).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -649,32 +665,40 @@ export default function TestDataGeneratorPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10 font-mono">
-                  {filteredRecords.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-white/5 transition-colors">
-                      <td className="p-3 border-r border-white/10 text-center text-white/40 text-[10px]">
-                        {idx + 1}
+                <tbody>
+                  {filteredRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan={columnHeaders.length + 1} className="p-8 text-center text-white/50 font-mono text-xs">
+                        No matching records found for "{searchTerm}". Try adjusting your search filter.
                       </td>
-                      {columnHeaders.map((col) => (
-                        <td key={col} className="p-3 border-r border-white/10 whitespace-nowrap text-white/90 max-w-xs truncate">
-                          {typeof row[col] === "boolean" || col === "is_active" || col === "is_public" ? (
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] ${
-                                row[col] === 1 || row[col] === true
-                                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                                  : "border-rose-500/30 bg-rose-500/10 text-rose-300"
-                              }`}
-                            >
-                              {row[col] ? "TRUE" : "FALSE"}
-                            </Badge>
-                          ) : (
-                            String(row[col])
-                          )}
-                        </td>
-                      ))}
                     </tr>
-                  ))}
+                  ) : (
+                    filteredRecords.map((row, idx) => (
+                      <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors font-mono">
+                        <td className="p-3 border-r border-white/10 text-center text-white/40">{idx + 1}</td>
+                        {columnHeaders.map((col) => (
+                          <td key={col} className="p-3 border-r border-white/5 text-white/90 whitespace-nowrap">
+                            {col === "status" ? (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  row[col] === "COMPLETED" || row[col] === "PAID"
+                                    ? "text-emerald-400 border-emerald-500/30"
+                                    : row[col] === "FAILED"
+                                    ? "text-rose-400 border-rose-500/30"
+                                    : "text-amber-400 border-amber-500/30"
+                                }
+                              >
+                                {String(row[col])}
+                              </Badge>
+                            ) : (
+                              String(row[col])
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

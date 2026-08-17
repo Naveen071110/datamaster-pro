@@ -20,12 +20,13 @@ export function MobileNav() {
   const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-[#0d0d0d]/95 backdrop-blur-md px-2 py-1">
+    <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-[#0d0d0d]/95 backdrop-blur-md px-2 py-1">
       <div className="flex items-center justify-around">
         {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            aria-label={item.label}
             className={({ isActive }) =>
               cn(
                 "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200",
@@ -42,7 +43,9 @@ export function MobileNav() {
 
         {/* More button to open drawer */}
         <button
+          type="button"
           onClick={() => setMobileNavOpen(true)}
+          aria-label="Open navigation menu drawer"
           className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
         >
           <Menu className="h-4 w-4 text-white" />

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { ArrowLeft, Home, Bookmark, BookmarkCheck, Wifi, AlertTriangle, Clock, Table2, GitBranch, Copy, RefreshCw, BarChart3, ListOrdered, ChevronRight, Search } from "lucide-react"
+import { ArrowLeft, Home, Bookmark, BookmarkCheck, Wifi, AlertTriangle, Clock, Table2, GitBranch, Copy, Check, RefreshCw, BarChart3, ListOrdered, ChevronRight, Search, Cpu } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
@@ -11,7 +11,7 @@ import { troubleScenarios } from "@/content/troubleshooting-content"
 import type { DecisionNode, SolutionNode, TroubleScenario } from "@/shared/types/content"
 
 const iconMap: Record<string, React.ElementType> = {
-  Wifi, AlertTriangle, Clock, Table2, GitBranch, Copy, RefreshCw, BarChart3, ListOrdered,
+  Wifi, AlertTriangle, Clock, Table2, GitBranch, Copy, RefreshCw, BarChart3, ListOrdered, MemoryStick: Cpu, Cpu,
 }
 
 function isSolutionNode(node: DecisionNode | SolutionNode): node is SolutionNode {
@@ -21,7 +21,19 @@ function isSolutionNode(node: DecisionNode | SolutionNode): node is SolutionNode
 function ScenarioCard({ scenario, onSelect }: { scenario: TroubleScenario; onSelect: () => void }) {
   const Icon = iconMap[scenario.icon] || Search
   return (
-    <Card className="cursor-pointer hover:bg-accent/50 transition-colors border-border/50" onClick={onSelect}>
+    <Card
+      role="button"
+      tabIndex={0}
+      aria-label={`Troubleshoot ${scenario.title}`}
+      className="cursor-pointer hover:bg-accent/50 transition-colors border-border/50 focus:outline-none focus:ring-2 focus:ring-primary"
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
+    >
       <CardContent className="p-4 flex items-start gap-3">
         <div className="p-2 rounded-lg bg-muted">
           <Icon className="h-5 w-5 text-primary" />
@@ -68,12 +80,20 @@ function QuestionNode({ node, onAnswer }: { node: DecisionNode; onAnswer: (answe
 
 function SolutionView({ solution }: { solution: SolutionNode }) {
   const { isBookmarked, addBookmark, removeBookmark } = useAppStore()
+  const [copiedCode, setCopiedCode] = useState(false)
   const bookmarked = isBookmarked(solution.id, "troubleshooting")
 
   const handleBookmark = useCallback(() => {
     if (bookmarked) removeBookmark(solution.id, "troubleshooting")
     else addBookmark({ type: "troubleshooting", targetId: solution.id, title: solution.title, path: "/troubleshooting" })
   }, [bookmarked, solution, addBookmark, removeBookmark])
+
+  const handleCopyCode = () => {
+    if (!solution.codeExample) return
+    navigator.clipboard.writeText(solution.codeExample).catch(() => {})
+    setCopiedCode(true)
+    setTimeout(() => setCopiedCode(false), 2000)
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -87,7 +107,7 @@ function SolutionView({ solution }: { solution: SolutionNode }) {
               <CardTitle className="text-lg">{solution.title}</CardTitle>
               <CardDescription>{solution.description}</CardDescription>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleBookmark}>
+            <Button variant="ghost" size="icon" onClick={handleBookmark} aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}>
               {bookmarked ? <BookmarkCheck className="h-4 w-4 text-primary" /> : <Bookmark className="h-4 w-4" />}
             </Button>
           </div>
@@ -106,7 +126,18 @@ function SolutionView({ solution }: { solution: SolutionNode }) {
           </div>
           {solution.codeExample && (
             <div>
-              <h4 className="text-sm font-semibold mb-2">Code Example:</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-semibold">Code Example:</h4>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 p-1 rounded hover:bg-muted transition-colors"
+                  aria-label="Copy solution code"
+                >
+                  {copiedCode ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span>{copiedCode ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
               <pre className="p-3 rounded-md bg-muted/30 border border-border/50 overflow-x-auto">
                 <code className="text-xs font-mono whitespace-pre">{solution.codeExample}</code>
               </pre>
@@ -273,26 +304,33 @@ export default function TroubleshootingPage() {
 
       {/* Category groups */}
       <div className="space-y-6">
-        {["connection", "data-quality", "performance", "schema", "dependency"].map((category) => {
-          const items = filteredScenarios.filter((s) => s.category === category)
-          if (items.length === 0) return null
-          return (
-            <div key={category}>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 capitalize">
-                {category.replace("-", " ")}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {items.map((scenario) => (
-                  <ScenarioCard
-                    key={scenario.id}
-                    scenario={scenario}
-                    onSelect={() => handleSelectScenario(scenario.id)}
-                  />
-                ))}
+        {filteredScenarios.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-border rounded-xl text-muted-foreground">
+            <p className="text-sm">No troubleshooting scenarios match "{searchQuery}".</p>
+            <p className="text-xs mt-1">Try searching for keywords like "timeout", "duplicate", "spill", or "schema".</p>
+          </div>
+        ) : (
+          ["connection", "data-quality", "performance", "schema", "dependency"].map((category) => {
+            const items = filteredScenarios.filter((s) => s.category === category)
+            if (items.length === 0) return null
+            return (
+              <div key={category}>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 capitalize">
+                  {category.replace("-", " ")}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {items.map((scenario) => (
+                    <ScenarioCard
+                      key={scenario.id}
+                      scenario={scenario}
+                      onSelect={() => handleSelectScenario(scenario.id)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
     </div>
   )

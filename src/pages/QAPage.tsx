@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback } from "react"
-import { Search, ChevronDown, ChevronUp, Bookmark, BookmarkCheck, ChevronRight, Filter } from "lucide-react"
+import { Search, ChevronDown, ChevronUp, Bookmark, BookmarkCheck, Copy, Check } from "lucide-react"
 import { Input } from "@/shared/components/ui/input"
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { cn } from "@/shared/utils/cn"
@@ -25,6 +24,7 @@ export default function QAPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null)
   const { isBookmarked, addBookmark, removeBookmark } = useAppStore()
 
   const debouncedSearch = useDebounce(searchQuery, 200)
@@ -121,8 +121,8 @@ export default function QAPage() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Search bar */}
-        <div className="p-4 border-b border-border">
+        {/* Search bar & Mobile Topic Pills */}
+        <div className="p-4 border-b border-border space-y-3">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -131,6 +131,35 @@ export default function QAPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
+          </div>
+
+          {/* Mobile Topic Pills (Visible on < 768px screens) */}
+          <div className="md:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={cn(
+                "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                !selectedCategory
+                  ? "bg-black text-white font-semibold"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              All Topics ({qaContent.length})
+            </button>
+            {categoriesWithCounts.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={cn(
+                  "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  selectedCategory === cat.id
+                    ? "bg-black text-white font-semibold"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                {cat.label} ({cat.count})
+              </button>
+            ))}
           </div>
         </div>
 
@@ -157,23 +186,29 @@ export default function QAPage() {
                 return (
                   <Card key={item.id} className="border-border/50">
                     <CardContent className="p-0">
-                      <button
-                        onClick={() => toggleCard(item.id)}
-                        className="flex items-start gap-3 w-full text-left p-4 hover:bg-muted/10 transition-colors"
-                      >
-                        <div className="mt-0.5 shrink-0">
+                      <div className="flex items-start gap-3 w-full p-4 hover:bg-muted/10 transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => toggleCard(item.id)}
+                          className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
+                          aria-label={isExpanded ? "Collapse answer" : "Expand answer"}
+                          aria-expanded={isExpanded}
+                        >
                           {isExpanded ? (
-                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                            <ChevronUp className="h-4 w-4" />
                           ) : (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            <ChevronDown className="h-4 w-4" />
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
+                        </button>
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => toggleCard(item.id)}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <h3 className="text-sm font-medium leading-snug">
                               {item.question}
                             </h3>
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                               <Badge
                                 variant="outline"
                                 className={cn(
@@ -186,10 +221,8 @@ export default function QAPage() {
                                 {item.difficulty}
                               </Badge>
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleBookmark(item)
-                                }}
+                                type="button"
+                                onClick={() => handleBookmark(item)}
                                 className="p-1 hover:bg-muted rounded transition-colors"
                                 aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
                               >
@@ -212,7 +245,7 @@ export default function QAPage() {
                             ))}
                           </div>
                         </div>
-                      </button>
+                      </div>
 
                       {isExpanded && (
                         <div className="px-4 pb-4 pt-0 border-t border-border/50">
@@ -221,9 +254,23 @@ export default function QAPage() {
                               {item.answer}
                             </div>
                             {item.code && (
-                              <pre className="p-3 rounded-md bg-muted/30 border border-border/50 overflow-x-auto">
-                                <code className="text-xs font-mono whitespace-pre">{item.code}</code>
-                              </pre>
+                              <div className="relative group/code">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(item.code || "").catch(() => {})
+                                    setCopiedCodeId(item.id)
+                                    setTimeout(() => setCopiedCodeId(null), 2000)
+                                  }}
+                                  className="absolute top-2 right-2 p-1.5 rounded bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground text-xs inline-flex items-center gap-1 transition-colors"
+                                  aria-label="Copy code snippet"
+                                >
+                                  {copiedCodeId === item.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                </button>
+                                <pre className="p-3 rounded-md bg-muted/30 border border-border/50 overflow-x-auto">
+                                  <code className="text-xs font-mono whitespace-pre">{item.code}</code>
+                                </pre>
+                              </div>
                             )}
                             <div className="flex flex-wrap gap-1">
                               {item.tags.map((tag) => (

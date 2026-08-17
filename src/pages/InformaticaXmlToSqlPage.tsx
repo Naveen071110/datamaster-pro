@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { FileCode2, Copy, Check, Upload, Terminal, Sparkles, SlidersHorizontal, RefreshCw } from "lucide-react"
+import { FileCode2, Copy, Check, Upload, Download } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
@@ -76,6 +76,10 @@ export default function InformaticaXmlToSqlPage() {
     try {
       const parser = new DOMParser()
       const doc = parser.parseFromString(xmlInput, "text/xml")
+      const parserError = doc.querySelector("parsererror")
+      if (parserError) {
+        return { sql: `-- XML Parsing Error: Invalid XML syntax.\n-- ${parserError.textContent?.slice(0, 150)}`, mappingName: "", transformations: [] }
+      }
       const mappingNode = doc.querySelector("MAPPING")
       const mappingName = mappingNode?.getAttribute("NAME") || "m_informatica_mapping"
 
@@ -139,7 +143,7 @@ export default function InformaticaXmlToSqlPage() {
 
       const transpileExpr = (expr: string): string => {
         let sqlExpr = expr
-        sqlExpr = sqlExpr.replace(/IIF\s*\(\s*ISNULL\((.*?)\)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "COALESCE($1, $2, $3)")
+        sqlExpr = sqlExpr.replace(/IIF\s*\(\s*ISNULL\((.*?)\)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "CASE WHEN $1 IS NULL THEN $2 ELSE $3 END")
         sqlExpr = sqlExpr.replace(/IIF\s*\(\s*(.*?)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "CASE WHEN $1 THEN $2 ELSE $3 END")
         sqlExpr = sqlExpr.replace(/ISNULL\((.*?)\)/gi, "$1 IS NULL")
         sqlExpr = sqlExpr.replace(/SUBSTR\(/gi, targetDialect === "db2" || targetDialect === "oracle" ? "SUBSTR(" : "SUBSTRING(")
@@ -237,9 +241,47 @@ export default function InformaticaXmlToSqlPage() {
 
   const handleCopy = () => {
     const textToCopy = mode === "xml" ? parsedXmlData.sql : resolvedParamData.resolvedSql
-    navigator.clipboard.writeText(textToCopy)
+    navigator.clipboard.writeText(textToCopy).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    const textToDownload = mode === "xml" ? parsedXmlData.sql : resolvedParamData.resolvedSql
+    const filename = mode === "xml" ? `${parsedXmlData.mappingName || "mapping"}_converted.sql` : "resolved_parameter_query.sql"
+    const blob = new Blob([textToDownload], { type: "application/sql" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleXmlUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onerror = () => {}
+    reader.onload = (evt) => {
+      const content = evt.target?.result as string
+      if (content) setXmlInput(content)
+    }
+    reader.readAsText(file)
+    e.target.value = ""
+  }
+
+  const handleParamUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onerror = () => {}
+    reader.onload = (evt) => {
+      const content = evt.target?.result as string
+      if (content) setParamFileContent(content)
+    }
+    reader.readAsText(file)
+    e.target.value = ""
   }
 
   return (
@@ -284,9 +326,17 @@ export default function InformaticaXmlToSqlPage() {
           <Card className="border-white/15 bg-white/5 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-base font-semibold text-white">Informatica XML Mapping Input</CardTitle>
-              <Button size="sm" variant="outline" className="text-xs border-white/20 bg-white/5" onClick={() => setXmlInput(SAMPLE_INFORMATICA_XML)}>
-                Reset Sample
-              </Button>
+              <div className="flex items-center gap-2">
+                <label htmlFor="infa-xml-file-upload" className="cursor-pointer">
+                  <span className="rounded border border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs px-2.5 py-1 inline-flex items-center gap-1">
+                    <Upload className="h-3 w-3" /> Upload XML
+                  </span>
+                  <input id="infa-xml-file-upload" type="file" accept=".xml" className="hidden" onChange={handleXmlUpload} />
+                </label>
+                <Button size="sm" variant="outline" className="text-xs border-white/20 bg-white/5" onClick={() => setXmlInput(SAMPLE_INFORMATICA_XML)}>
+                  Reset Sample
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
@@ -298,10 +348,16 @@ export default function InformaticaXmlToSqlPage() {
           <Card className="border-white/15 bg-white/5 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-base font-semibold text-white">Generated Testable CTE SQL Query</CardTitle>
-              <Button size="sm" onClick={handleCopy} className="bg-white text-black hover:bg-white/90 text-xs">
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                <span className="ml-1">{copied ? "Copied!" : "Copy SQL"}</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={handleDownload} className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs">
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                  <span>Download .sql</span>
+                </Button>
+                <Button size="sm" onClick={handleCopy} className="bg-white text-black hover:bg-white/90 text-xs">
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span className="ml-1">{copied ? "Copied!" : "Copy SQL"}</span>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
