@@ -39,10 +39,10 @@ export default function Db2SasDdlPage() {
       const trimmed = line.trim()
       if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("--")) return
 
-      const sepIdx = trimmed.search(/[=:]/)
-      if (sepIdx !== -1) {
-        const rawKey = trimmed.slice(0, sepIdx).trim()
-        const rawVal = trimmed.slice(sepIdx + 1).trim()
+      const match = trimmed.match(/^([:&]?[A-Za-z0-9_]+)\s*[:=]\s*(.+)$/)
+      if (match) {
+        const rawKey = match[1].trim()
+        const rawVal = match[2].trim()
         if (rawKey) {
           const cleanKey = rawKey.replace(/^[:&]/, "")
           paramMap[rawKey] = rawVal
@@ -55,7 +55,7 @@ export default function Db2SasDdlPage() {
 
     // Match :param or &macro without capturing :: typecasts
     const foundParams = Array.from(db2ParamQuery.matchAll(/(?<!:)([:&][A-Za-z0-9_]+)/g)).map((m) => m[1])
-    const uniqueFoundParams = Array.from(new Set(foundParams))
+    const uniqueFoundParams = Array.from(new Set(foundParams)).sort((a, b) => b.length - a.length)
 
     let resolvedSql = db2ParamQuery
 

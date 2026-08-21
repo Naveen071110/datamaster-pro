@@ -15,6 +15,7 @@ import {
   Play,
   X,
   FileCode2,
+  Heart,
 } from "lucide-react"
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 
@@ -457,11 +458,25 @@ export default function LandingPage() {
         )}
 
         {/* Footer */}
-        <footer className="px-5 sm:px-8 md:px-12 py-10 border-t border-white/10 bg-[#0a0a0a]/90 backdrop-blur-xl text-white/60 text-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+        <footer className="px-5 sm:px-8 md:px-12 py-10 border-t border-white/10 bg-[#0a0a0a]/90 backdrop-blur-xl text-white/60 text-xs flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <Hexagon className="h-5 w-5 text-white" />
             <span className="font-semibold text-white">DataMaster Pro</span>
             <span className="hidden sm:inline">• Privacy-first developer utility suite for data professionals</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 font-mono text-xs text-white/70">
+            <span>Built with</span>
+            <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500 inline-block animate-pulse" aria-hidden="true" />
+            <span>by</span>
+            <a
+              href="https://naveenguru.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-white hover:text-white transition-all duration-200 underline decoration-white/30 hover:decoration-white underline-offset-4 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+            >
+              Naveen
+            </a>
           </div>
 
           <div className="flex items-center gap-6 text-white/70 font-mono text-[11px]">

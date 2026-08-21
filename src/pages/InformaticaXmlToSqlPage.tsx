@@ -142,12 +142,98 @@ export default function InformaticaXmlToSqlPage() {
       })
 
       const transpileExpr = (expr: string): string => {
-        let sqlExpr = expr
-        sqlExpr = sqlExpr.replace(/IIF\s*\(\s*ISNULL\((.*?)\)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "CASE WHEN $1 IS NULL THEN $2 ELSE $3 END")
-        sqlExpr = sqlExpr.replace(/IIF\s*\(\s*(.*?)\s*,\s*(.*?)\s*,\s*(.*?)\)/gi, "CASE WHEN $1 THEN $2 ELSE $3 END")
-        sqlExpr = sqlExpr.replace(/ISNULL\((.*?)\)/gi, "$1 IS NULL")
-        sqlExpr = sqlExpr.replace(/SUBSTR\(/gi, targetDialect === "db2" || targetDialect === "oracle" ? "SUBSTR(" : "SUBSTRING(")
-        return sqlExpr
+        let result = expr
+
+        function transformCalls(str: string, fnName: string, transformer: (args: string[]) => string): string {
+          let output = ""
+          let pos = 0
+          while (pos < str.length) {
+            const upperStr = str.toUpperCase()
+            const searchTarget = fnName.toUpperCase() + "("
+            const idx = upperStr.indexOf(searchTarget, pos)
+            if (idx === -1) {
+              output += str.slice(pos)
+              break
+            }
+            if (idx > 0 && /[A-Za-z0-9_]/.test(str[idx - 1])) {
+              output += str.slice(pos, idx + searchTarget.length)
+              pos = idx + searchTarget.length
+              continue
+            }
+            output += str.slice(pos, idx)
+            const startParen = idx + fnName.length
+            let depth = 1
+            let endParen = -1
+            let inString = false
+            let stringChar = ""
+            for (let i = startParen + 1; i < str.length; i++) {
+              const char = str[i]
+              if (inString) {
+                if (char === stringChar && str[i - 1] !== "\\") inString = false
+              } else if (char === "'" || char === '"') {
+                inString = true
+                stringChar = char
+              } else if (char === "(") {
+                depth++
+              } else if (char === ")") {
+                depth--
+                if (depth === 0) {
+                  endParen = i
+                  break
+                }
+              }
+            }
+            if (endParen !== -1) {
+              const insideArgs = str.slice(startParen + 1, endParen)
+              const innerTranspiled = transpileExpr(insideArgs)
+              // Split top-level commas
+              const args: string[] = []
+              let d = 0, inS = false, sChar = "", cur = ""
+              for (let j = 0; j < innerTranspiled.length; j++) {
+                const c = innerTranspiled[j]
+                if (inS) {
+                  cur += c
+                  if (c === sChar && innerTranspiled[j - 1] !== "\\") inS = false
+                } else if (c === "'" || c === '"') {
+                  inS = true
+                  sChar = c
+                  cur += c
+                } else if (c === "(") {
+                  d++
+                  cur += c
+                } else if (c === ")") {
+                  d--
+                  cur += c
+                } else if (c === "," && d === 0) {
+                  args.push(cur.trim())
+                  cur = ""
+                } else {
+                  cur += c
+                }
+              }
+              if (cur.trim()) args.push(cur.trim())
+
+              output += transformer(args)
+              pos = endParen + 1
+            } else {
+              output += str.slice(idx)
+              break
+            }
+          }
+          return output
+        }
+
+        result = transformCalls(result, "IIF", (args) => {
+          if (args.length >= 3) return `CASE WHEN ${args[0]} THEN ${args[1]} ELSE ${args[2]} END`
+          if (args.length === 2) return `CASE WHEN ${args[0]} THEN ${args[1]} ELSE NULL END`
+          return `IIF(${args.join(", ")})`
+        })
+        result = transformCalls(result, "ISNULL", (args) => `${args[0]} IS NULL`)
+        result = transformCalls(result, "SUBSTR", (args) => {
+          const fn = targetDialect === "db2" || targetDialect === "oracle" ? "SUBSTR" : "SUBSTRING"
+          return `${fn}(${args.join(", ")})`
+        })
+        return result
       }
 
       let generatedSql = `-- ==========================================================================\n`
@@ -346,8 +432,23 @@ export default function InformaticaXmlToSqlPage() {
           </Card>
 
           <Card className="border-white/15 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base font-semibold text-white">Generated Testable CTE SQL Query</CardTitle>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 gap-3">
+              <div>
+                <CardTitle className="text-base font-semibold text-white">Generated CTE SQL Query</CardTitle>
+                <div className="flex items-center gap-1.5 mt-2">
+                  {(["snowflake", "bigquery", "postgres", "db2", "oracle"] as Dialect[]).map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setTargetDialect(d)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-mono uppercase transition-all ${
+                        targetDialect === d ? "bg-sky-400 text-black font-bold" : "bg-white/5 text-white/60 hover:text-white"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={handleDownload} className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs">
                   <Download className="h-3.5 w-3.5 mr-1" />

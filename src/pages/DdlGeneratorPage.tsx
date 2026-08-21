@@ -94,24 +94,30 @@ export default function DdlGeneratorPage() {
       let isFloat = true
       let isBool = true
       let isTimestamp = true
+      let nonNullCount = 0
 
       for (const row of rows) {
         const val = String(row[header] ?? "").trim()
         if (!val) continue
+        nonNullCount++
 
         if (isInt && !/^-?\d+$/.test(val)) isInt = false
         if (isFloat && !/^-?\d+(\.\d+)?$/.test(val)) isFloat = false
         if (isBool && !/^(true|false|1|0)$/i.test(val)) isBool = false
-        if (isTimestamp && isNaN(Date.parse(val))) isTimestamp = false
+        const isDatePattern = /^\d{4}-\d{2}-\d{2}/.test(val) || /^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)
+        if (isTimestamp && (!isDatePattern || isNaN(Date.parse(val)))) isTimestamp = false
       }
 
       let inferredType = typeMapping.string
-      if (isBool) inferredType = typeMapping.boolean
-      else if (isInt) inferredType = typeMapping.integer
-      else if (isFloat) inferredType = typeMapping.float
-      else if (isTimestamp) inferredType = typeMapping.timestamp
+      if (nonNullCount > 0) {
+        if (isBool) inferredType = typeMapping.boolean
+        else if (isInt) inferredType = typeMapping.integer
+        else if (isFloat) inferredType = typeMapping.float
+        else if (isTimestamp) inferredType = typeMapping.timestamp
+      }
 
-      const cleanName = header.toLowerCase().replace(/[^a-z0-9_]/g, "_")
+      let cleanName = header.toLowerCase().replace(/[^a-z0-9_]/g, "_")
+      if (!cleanName || /^[0-9]/.test(cleanName)) cleanName = "col_" + cleanName
       return { originalName: header, colName: cleanName, type: inferredType }
     })
 
@@ -135,10 +141,17 @@ export default function DdlGeneratorPage() {
         const vals = inferredSchema.map((col) => {
           const rawVal = row[col.originalName] ?? ""
           if (rawVal === "" || rawVal === null || rawVal === undefined) return "NULL"
-          if (col.type.includes("INT") || col.type.includes("NUMERIC") || col.type.includes("FLOAT") || col.type.includes("REAL")) {
+          if (
+            col.type.includes("INT") ||
+            col.type.includes("NUMERIC") ||
+            col.type.includes("NUMBER") ||
+            col.type.includes("FLOAT") ||
+            col.type.includes("REAL") ||
+            col.type.includes("DECIMAL")
+          ) {
             return isNaN(Number(rawVal)) ? "NULL" : rawVal
           }
-          if (col.type.includes("BOOL")) {
+          if (col.type.includes("BOOL") || col.type === "TINYINT(1)") {
             return /^(true|1)$/i.test(String(rawVal)) ? "TRUE" : "FALSE"
           }
           return `'${String(rawVal).replace(/'/g, "''")}'`

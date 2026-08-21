@@ -267,7 +267,16 @@ export default function CurrencyRatesPage() {
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>FX Calculator & Live Matrix</span>
+          <span>FX Calculator</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("table")}
+          className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
+            activeTab === "table" ? "bg-white text-black font-bold shadow-md" : "text-white/60 hover:text-white"
+          }`}
+        >
+          <Search className="h-3.5 w-3.5" />
+          <span>All Rates Matrix</span>
         </button>
         <button
           onClick={() => setActiveTab("sql")}

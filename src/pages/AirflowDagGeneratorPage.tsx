@@ -88,9 +88,15 @@ export default function AirflowDagGeneratorPage() {
 
   // Generate complete Python DAG Script
   const generatedPythonDag = useMemo(() => {
+    const PYTHON_KEYWORDS = new Set([
+      "def", "class", "import", "from", "for", "while", "pass", "return", "with", "as",
+      "global", "lambda", "try", "except", "finally", "raise", "yield", "none", "true",
+      "false", "in", "is", "not", "and", "or", "del", "if", "elif", "else", "assert"
+    ])
     const sanitizeIdent = (name: string) => {
       let cleaned = name.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_")
       if (/^[0-9]/.test(cleaned)) cleaned = "_" + cleaned
+      if (PYTHON_KEYWORDS.has(cleaned)) cleaned = `${cleaned}_task`
       return cleaned || "task"
     }
 

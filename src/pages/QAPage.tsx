@@ -140,7 +140,7 @@ export default function QAPage() {
               className={cn(
                 "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                 !selectedCategory
-                  ? "bg-black text-white font-semibold"
+                  ? "bg-primary text-primary-foreground font-semibold"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               )}
             >
@@ -153,7 +153,7 @@ export default function QAPage() {
                 className={cn(
                   "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                   selectedCategory === cat.id
-                    ? "bg-black text-white font-semibold"
+                    ? "bg-primary text-primary-foreground font-semibold"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >

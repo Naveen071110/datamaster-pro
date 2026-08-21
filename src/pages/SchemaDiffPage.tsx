@@ -31,11 +31,13 @@ interface ColumnDef {
 function parseColumns(sql: string): ColumnDef[] {
   const lines = sql.split("\n")
   const cols: ColumnDef[] = []
+  const constraintKeywords = ["PRIMARY", "CONSTRAINT", "FOREIGN", "UNIQUE", "CHECK", "INDEX", "KEY"]
+
   for (const line of lines) {
-    const trimmed = line.trim().replace(/,$/, "")
-    if (!trimmed || trimmed.toUpperCase().startsWith("CREATE TABLE") || trimmed.startsWith(");")) continue
-    const parts = trimmed.split(/\s+/)
-    if (parts.length >= 2 && !parts[0].toUpperCase().startsWith("PRIMARY") && !parts[0].toUpperCase().startsWith("CONSTRAINT")) {
+    const stripped = line.replace(/--.*$/, "").trim().replace(/,$/, "")
+    if (!stripped || stripped.toUpperCase().startsWith("CREATE TABLE") || stripped.startsWith(");")) continue
+    const parts = stripped.split(/\s+/)
+    if (parts.length >= 2 && !constraintKeywords.includes(parts[0].toUpperCase())) {
       const colName = parts[0].replace(/[`"']/g, "")
       const colType = parts.slice(1).join(" ")
       cols.push({ name: colName.toLowerCase(), type: colType.toUpperCase() })

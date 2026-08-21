@@ -317,9 +317,17 @@ export async function getDatabase(): Promise<any> {
 }
 
 export function executeQuery(db: any, sql: string): { columns: string[]; rows: Record<string, unknown>[]; rowCount: number; affectedRows?: number } {
-  const trimmedSql = sql.trim().toUpperCase()
+  // Strip leading SQL comments (single-line -- and multi-line /* */)
+  const strippedSql = sql.replace(/^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*/g, "").trim()
+  const upper = strippedSql.toUpperCase()
 
-  if (trimmedSql.startsWith('SELECT') || trimmedSql.startsWith('PRAGMA') || trimmedSql.startsWith('EXPLAIN')) {
+  if (
+    upper.startsWith("SELECT") ||
+    upper.startsWith("WITH") ||
+    upper.startsWith("PRAGMA") ||
+    upper.startsWith("EXPLAIN") ||
+    upper.startsWith("VALUES")
+  ) {
     const stmt = db.prepare(sql)
     const columns = stmt.getColumnNames()
     const rows: Record<string, unknown>[] = []
@@ -336,42 +344,78 @@ export function executeQuery(db: any, sql: string): { columns: string[]; rows: R
 }
 
 export function getSchema(db: any): { tableName: string; columns: { name: string; type: string }[] }[] {
-  const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+  const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
   const schema: { tableName: string; columns: { name: string; type: string }[] }[] = []
 
-  for (const table of tables) {
-    const tableName = table.values[0][0] as string
-    const cols = db.exec(`PRAGMA table_info('${tableName}')`)
-    const columns = cols[0]?.values.map((col: any) => ({
-      name: col[1] as string,
-      type: col[2] as string,
-    })) || []
-    schema.push({ tableName, columns })
+  if (tables.length > 0 && tables[0].values) {
+    for (const row of tables[0].values) {
+      const tableName = row[0] as string
+      const cols = db.exec(`PRAGMA table_info("${tableName}")`)
+      const columns =
+        cols[0]?.values.map((col: any) => ({
+          name: col[1] as string,
+          type: col[2] as string,
+        })) || []
+      schema.push({ tableName, columns })
+    }
   }
 
   return schema
+}
+
+function parseCsvTokens(line: string): string[] {
+  const result: string[] = []
+  let current = ""
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim())
+      current = ""
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result
 }
 
 export function createTableFromCsv(db: any, rawTableName: string, csvContent: string): { tableName: string; columnCount: number; rowCount: number } {
   const lines = csvContent.trim().split("\n").map((l) => l.trim()).filter(Boolean)
   if (lines.length === 0) throw new Error("CSV file is empty")
 
-  const tableName = rawTableName.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "user_upload"
-  const rawHeaders = lines[0].split(",").map((h) => h.replace(/^["']|["']$/g, "").trim())
-  const cleanHeaders = rawHeaders.map((h, i) => h.toLowerCase().replace(/[^a-z0-9_]/g, "_") || `col_${i + 1}`)
+  let tableName = rawTableName.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "user_upload"
+  if (/^[0-9]/.test(tableName)) tableName = "tbl_" + tableName
+
+  const rawHeaders = parseCsvTokens(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
+  const cleanHeaders = rawHeaders.map((h, i) => {
+    let clean = h.toLowerCase().replace(/[^a-z0-9_]/g, "_")
+    if (!clean || /^[0-9]/.test(clean)) clean = `col_${i + 1}_${clean}`
+    return clean
+  })
 
   // Drop if exists and create table
-  db.run(`DROP TABLE IF EXISTS ${tableName};`)
-  const ddl = `CREATE TABLE ${tableName} (${cleanHeaders.map((h) => `${h} TEXT`).join(", ")});`
+  db.run(`DROP TABLE IF EXISTS "${tableName}";`)
+  const ddl = `CREATE TABLE "${tableName}" (${cleanHeaders.map((h) => `"${h}" TEXT`).join(", ")});`
   db.run(ddl)
 
   // Insert rows
   const placeholders = cleanHeaders.map(() => "?").join(", ")
-  const stmt = db.prepare(`INSERT INTO ${tableName} VALUES (${placeholders});`)
+  const stmt = db.prepare(`INSERT INTO "${tableName}" VALUES (${placeholders});`)
 
   let count = 0
   for (let i = 1; i < lines.length; i++) {
-    const vals = lines[i].split(",").map((v) => v.replace(/^["']|["']$/g, "").trim())
+    const rawVals = parseCsvTokens(lines[i]).map((v) => v.replace(/^["']|["']$/g, "").trim())
+    // Pad or trim values to match cleanHeaders length
+    const vals: string[] = cleanHeaders.map((_, idx) => (idx < rawVals.length ? rawVals[idx] : ""))
     stmt.run(vals)
     count++
   }

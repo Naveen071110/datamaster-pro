@@ -106,7 +106,8 @@ export default function DataProfilerPage() {
           if (isInt && !/^-?\d+$/.test(val)) isInt = false
           if (isFloat && !/^-?\d+(\.\d+)?$/.test(val)) isFloat = false
           if (isBool && !/^(true|false|1|0)$/i.test(val)) isBool = false
-          if (isDate && isNaN(Date.parse(val))) isDate = false
+          const isDatePattern = /^\d{4}-\d{2}-\d{2}/.test(val) || /^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)
+          if (isDate && (!isDatePattern || isNaN(Date.parse(val)))) isDate = false
 
           const num = Number(val)
           if (!isNaN(num) && val !== "") {
@@ -137,9 +138,9 @@ export default function DataProfilerPage() {
         .slice(0, 3)
         .map(([value, count]) => ({ value, count }))
 
-      // Compute Numeric Stats (using iterative loop to avoid V8 call stack limits on large arrays)
+      // Compute Numeric Stats only for numeric types
       let minVal, maxVal, meanVal
-      if (numericVals.length > 0) {
+      if ((inferredType === "INTEGER" || inferredType === "FLOAT") && numericVals.length > 0) {
         let sum = 0
         let min = numericVals[0]
         let max = numericVals[0]

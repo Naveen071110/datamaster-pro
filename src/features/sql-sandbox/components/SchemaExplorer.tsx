@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronRight, ChevronDown, Table2 } from "lucide-react"
 import { cn } from "@/shared/utils/cn"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
@@ -15,6 +15,12 @@ interface SchemaExplorerProps {
 
 export function SchemaExplorer({ schema }: SchemaExplorerProps) {
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set(schema.slice(0, 2).map(s => s.tableName)))
+
+  useEffect(() => {
+    if (schema.length > 0 && expandedTables.size === 0) {
+      setExpandedTables(new Set(schema.slice(0, 2).map((s) => s.tableName)))
+    }
+  }, [schema])
 
   const toggleTable = (name: string) => {
     setExpandedTables((prev) => {

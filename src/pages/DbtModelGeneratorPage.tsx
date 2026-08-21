@@ -54,12 +54,29 @@ export default function DbtModelGeneratorPage() {
     const selectMatch = rawSql.match(/SELECT\s+([\s\S]*?)\s+FROM/i)
     const columnText = selectMatch ? selectMatch[1] : rawSql
 
-    const lines = columnText.split("\n")
-    lines.forEach((line) => {
-      const trimmed = line.trim().replace(/,$/, "")
+    // Tokenize columns by top-level commas (respecting parentheses)
+    const rawColTokens: string[] = []
+    let depth = 0
+    let cur = ""
+    for (let i = 0; i < columnText.length; i++) {
+      const c = columnText[i]
+      if (c === "(") depth++
+      else if (c === ")") depth = Math.max(0, depth - 1)
+
+      if (c === "," && depth === 0) {
+        if (cur.trim()) rawColTokens.push(cur.trim())
+        cur = ""
+      } else {
+        cur += c
+      }
+    }
+    if (cur.trim()) rawColTokens.push(cur.trim())
+
+    rawColTokens.forEach((token) => {
+      const trimmed = token.replace(/--.*$/, "").trim()
       if (!trimmed || /^(SELECT|FROM|WHERE|GROUP|ORDER|HAVING|LIMIT)/i.test(trimmed)) return
 
-      const matchAs = trimmed.match(/(?:AS|as)\s+([a-zA-Z0-9_]+)/)
+      const matchAs = trimmed.match(/(?:AS|as)\s+([a-zA-Z0-9_]+)$/)
       if (matchAs) {
         const colName = matchAs[1].trim()
         cols.push({
@@ -69,7 +86,7 @@ export default function DbtModelGeneratorPage() {
         })
       } else {
         const matchCol = trimmed.match(/([a-zA-Z0-9_]+)$/)
-        if (matchCol && !["SELECT", "FROM", "WHERE", "GROUP", "ORDER", "AS"].includes(matchCol[1].toUpperCase())) {
+        if (matchCol && !["SELECT", "FROM", "WHERE", "GROUP", "ORDER", "AS", "DISTINCT"].includes(matchCol[1].toUpperCase())) {
           const colName = matchCol[1].trim()
           cols.push({
             name: colName,

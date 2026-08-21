@@ -64,7 +64,7 @@ export default function SnowflakeStageGeneratorPage() {
     setCloudUrl(DEFAULT_STAGE_URLS[type])
     if (type === "internal") {
       setStorageIntegration("")
-    } else if (!storageIntegration) {
+    } else {
       setStorageIntegration(`${type.toUpperCase()}_INT_PROD`)
     }
   }
@@ -108,13 +108,17 @@ export default function SnowflakeStageGeneratorPage() {
     } else {
       sql += `CREATE OR REPLACE STAGE ${stageName}\n`
       sql += `  URL = '${cloudUrl}'\n`
-      sql += `  STORAGE_INTEGRATION = ${storageIntegration}\n`
+      if (storageIntegration) {
+        sql += `  STORAGE_INTEGRATION = ${storageIntegration}\n`
+      }
       sql += `  FILE_FORMAT = (FORMAT_NAME = 'FF_${fileFormat}_FORMAT')\n`
-      sql += `  DIRECTORY = (ENABLE = TRUE, AUTO_REFRESH = TRUE);\n\n`
+      sql += `  DIRECTORY = (ENABLE = TRUE);\n\n`
     }
 
+    const isSemiStructured = ["PARQUET", "JSON", "AVRO", "ORC"].includes(fileFormat)
+
     sql += `-- 3. Target Raw Table DDL\n`
-    if (fileFormat === "PARQUET" || fileFormat === "JSON") {
+    if (isSemiStructured) {
       sql += `CREATE OR REPLACE TABLE ${tableName} (\n`
       sql += `  RAW_RECORD           VARIANT,\n`
       sql += `  METADATA_FILENAME    VARCHAR(500) DEFAULT METADATA$FILENAME,\n`
@@ -338,15 +342,29 @@ export default function SnowflakeStageGeneratorPage() {
               </div>
 
               {stageType !== "internal" && (
-                <div>
-                  <label className="text-xs font-mono text-white/60 block mb-1">Cloud Bucket URL:</label>
-                  <input
-                    type="text"
-                    value={cloudUrl}
-                    onChange={(e) => setCloudUrl(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-1.5 text-xs font-mono text-white"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label htmlFor="sf-cloud-url" className="text-xs font-mono text-white/60 block mb-1">Cloud Bucket URL:</label>
+                    <input
+                      id="sf-cloud-url"
+                      type="text"
+                      value={cloudUrl}
+                      onChange={(e) => setCloudUrl(e.target.value)}
+                      className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-1.5 text-xs font-mono text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="sf-storage-int" className="text-xs font-mono text-white/60 block mb-1">Storage Integration:</label>
+                    <input
+                      id="sf-storage-int"
+                      type="text"
+                      value={storageIntegration}
+                      onChange={(e) => setStorageIntegration(e.target.value)}
+                      placeholder="S3_INT_PROD"
+                      className="w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-3 py-1.5 text-xs font-mono text-white"
+                    />
+                  </div>
+                </>
               )}
 
               <div>

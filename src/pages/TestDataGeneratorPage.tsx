@@ -283,10 +283,17 @@ export default function TestDataGeneratorPage() {
 
   const csvOutput = useMemo(() => {
     if (activeRecords.length === 0) return ""
-    const headers = Object.keys(activeRecords[0]).join(",")
+    const headers = Object.keys(activeRecords[0]).map(h => {
+      const needsQuotes = h.includes(",") || h.includes('"') || h.includes("\n")
+      return needsQuotes ? `"${h.replace(/"/g, '""')}"` : h
+    }).join(",")
     const rows = activeRecords.map((row) =>
       Object.values(row)
-        .map((val) => (typeof val === "string" && val.includes(",") ? `"${val.replace(/"/g, '""')}"` : String(val)))
+        .map((val) => {
+          const str = String(val ?? "")
+          const needsQuotes = str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")
+          return needsQuotes ? `"${str.replace(/"/g, '""')}"` : str
+        })
         .join(",")
     )
     return [headers, ...rows].join("\n")
@@ -584,6 +591,16 @@ export default function TestDataGeneratorPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* API Error Banner if remote API fails */}
+      {apiError && (
+        <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-mono flex items-center justify-between">
+          <span>⚠️ Remote Provider Notice: {apiError}. Successfully generated synthetic records locally.</span>
+          <button onClick={() => setApiError(null)} className="text-white/60 hover:text-white text-xs underline">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Main Workspace: Format Tabs & Output */}
       <div className="space-y-4">

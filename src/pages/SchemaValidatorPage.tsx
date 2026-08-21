@@ -45,7 +45,10 @@ function validateField(
   // Validation passes only if EVERY non-null value conforms to the expected type
   const hasTypeMismatch = uniqueNonNullableTypes.some((t) => {
     if (schemaType === "any") return false
-    if (schemaType === "number" && t === "integer") return false
+    if (schemaType === "number" && (t === "integer" || t === "number")) return false
+    if (schemaType === "integer" && t === "integer") return false
+    if (schemaType === "float" && (t === "number" || t === "integer")) return false
+    if (schemaType === "string" && (t === "string" || t === "date" || t === "datetime")) return false
     return t !== schemaType
   })
 

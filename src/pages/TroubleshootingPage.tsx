@@ -168,12 +168,14 @@ function DecisionTreeView({
   onAnswer,
   onReset,
   onBack,
+  onStepBack,
 }: {
   scenario: TroubleScenario
   path: string[]
   onAnswer: (answerId: string) => void
   onReset: () => void
   onBack: () => void
+  onStepBack: () => void
 }) {
   // Traverse tree based on path
   let currentNode: DecisionNode | SolutionNode = scenario.tree
@@ -188,14 +190,22 @@ function DecisionTreeView({
 
   return (
     <div className="space-y-4">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <button onClick={onBack} className="hover:text-foreground transition-colors">
-          <ArrowLeft className="h-3.5 w-3.5 inline mr-1" />
-          Categories
-        </button>
-        <span>/</span>
-        <span className="text-foreground font-medium">{scenario.title}</span>
+      {/* Breadcrumb & Actions */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <button onClick={onBack} className="hover:text-foreground transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5 inline mr-1" />
+            Categories
+          </button>
+          <span>/</span>
+          <span className="text-foreground font-medium">{scenario.title}</span>
+        </div>
+        {path.length > 0 && (
+          <button onClick={onStepBack} className="hover:text-foreground transition-colors flex items-center gap-1">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Previous Question</span>
+          </button>
+        )}
       </div>
 
       {/* Progress */}
@@ -269,6 +279,12 @@ export default function TroubleshootingPage() {
     setSelectedScenarioId(null)
   }
 
+  const handleStepBack = () => {
+    if (!selectedScenarioId || currentPath.length === 0) return
+    const newPath = currentPath.slice(0, -1)
+    setNodePath(selectedScenarioId, newPath)
+  }
+
   if (selectedScenario && selectedScenarioId) {
     return (
       <div className="p-4 sm:p-6 max-w-4xl mx-auto">
@@ -278,6 +294,7 @@ export default function TroubleshootingPage() {
           onAnswer={handleAnswer}
           onReset={handleReset}
           onBack={handleBack}
+          onStepBack={handleStepBack}
         />
       </div>
     )

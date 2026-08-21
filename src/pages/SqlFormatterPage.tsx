@@ -49,15 +49,30 @@ export default function SqlFormatterPage() {
       sql = sql.replace(regex, `\n$1`)
     })
 
-    // 4. Format Sub-clauses & Commas
-    sql = sql.replace(/\s*,\s*/g, `,\n${spaces}`)
+    // 4. Format Sub-clauses & Commas (at top-level parenthesis depth 0)
+    let formattedWithCommas = ""
+    let depth = 0
+    for (let i = 0; i < sql.length; i++) {
+      const char = sql[i]
+      if (char === "(") depth++
+      else if (char === ")") depth = Math.max(0, depth - 1)
+
+      if (char === "," && depth === 0) {
+        formattedWithCommas += `,\n${spaces}`
+        while (sql[i + 1] === " " || sql[i + 1] === "\t") i++
+      } else {
+        formattedWithCommas += char
+      }
+    }
+    sql = formattedWithCommas
+
     sql = sql.replace(/\s+ON\s+/gi, `\n${spaces}ON `)
     sql = sql.replace(/\s+AND\s+/gi, `\n${spaces}AND `)
     sql = sql.replace(/\s+OR\s+/gi, `\n${spaces}OR `)
 
-    // 5. Restore string literals
+    // 5. Restore string literals using a function replacer to shield '$' tokens
     strings.forEach((str, idx) => {
-      sql = sql.replace(`__STR_LITERAL_${idx}__`, str)
+      sql = sql.replace(`__STR_LITERAL_${idx}__`, () => str)
     })
 
     return sql

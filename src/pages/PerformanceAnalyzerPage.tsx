@@ -49,7 +49,7 @@ function analyzeQuery(sql: string): { plan: AnalysisResult[]; hints: Optimizatio
   }
 
   // Check for missing WHERE
-  if (!upper.includes("WHERE")) {
+  if (!/\bWHERE\b/i.test(sql)) {
     hints.push({
       type: "warning",
       message: "No WHERE clause",
@@ -62,7 +62,7 @@ function analyzeQuery(sql: string): { plan: AnalysisResult[]; hints: Optimizatio
   }
 
   // Check for JOIN without ON
-  if (upper.includes("JOIN") && !upper.includes("ON ")) {
+  if (/\bJOIN\b/i.test(sql) && !/\bON\b/i.test(sql)) {
     hints.push({
       type: "error",
       message: "JOIN without ON condition (Cartesian product!)",
@@ -73,20 +73,20 @@ function analyzeQuery(sql: string): { plan: AnalysisResult[]; hints: Optimizatio
   }
 
   // Check for GROUP BY + HAVING
-  if (upper.includes("GROUP BY")) {
+  if (/\bGROUP\s+BY\b/i.test(sql)) {
     plan.push({ operation: "Group By / Aggregation", cost: "medium", details: "Sorting and grouping rows" })
-    if (upper.includes("HAVING")) {
+    if (/\bHAVING\b/i.test(sql)) {
       plan.push({ operation: "Having Filter", cost: "low", details: "Filtering groups post-aggregation" })
     }
   }
 
   // Check for ORDER BY
-  if (upper.includes("ORDER BY")) {
+  if (/\bORDER\s+BY\b/i.test(sql)) {
     plan.push({ operation: "Sort (ORDER BY)", cost: "medium", details: "Sorting result set" })
   }
 
   // Check for DISTINCT (potentially expensive)
-  if (upper.includes("DISTINCT")) {
+  if (/\bDISTINCT\b/i.test(sql)) {
     hints.push({
       type: "info",
       message: "DISTINCT detected",
@@ -97,7 +97,7 @@ function analyzeQuery(sql: string): { plan: AnalysisResult[]; hints: Optimizatio
   }
 
   // Check for NOT IN (often slower than NOT EXISTS)
-  if (upper.includes("NOT IN")) {
+  if (/\bNOT\s+IN\b/i.test(sql)) {
     hints.push({
       type: "warning",
       message: "NOT IN can be slow with NULLs",

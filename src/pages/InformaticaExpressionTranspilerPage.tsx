@@ -168,17 +168,27 @@ function transpileInformaticaExpression(input: string, dialect: TargetDialect): 
     const unit = (args[1] || "'DD'").replace(/['"]/g, "").toUpperCase()
     const amount = args[2] || "0"
 
+    const isYear = ["Y", "YY", "YYY", "YYYY", "YEAR"].includes(unit)
+    const isMonth = ["M", "MM", "MON", "MONTH"].includes(unit)
+    const isHour = ["H", "HH", "HH12", "HH24", "HOUR"].includes(unit)
+    const isMinute = ["MI", "MINUTE"].includes(unit)
+    const isSecond = ["S", "SS", "SECOND"].includes(unit)
+
     if (dialect === "postgres") {
-      return `(${dateCol} + (${amount}) * INTERVAL '1 ${unit === "MM" ? "month" : unit === "YY" ? "year" : "day"}')`
+      const pgUnit = isYear ? "year" : isMonth ? "month" : isHour ? "hour" : isMinute ? "minute" : isSecond ? "second" : "day"
+      return `(${dateCol} + (${amount}) * INTERVAL '1 ${pgUnit}')`
     } else if (dialect === "snowflake") {
-      return `DATEADD(${unit}, ${amount}, ${dateCol})`
+      const sfUnit = isYear ? "YEAR" : isMonth ? "MONTH" : isHour ? "HOUR" : isMinute ? "MINUTE" : isSecond ? "SECOND" : "DAY"
+      return `DATEADD(${sfUnit}, ${amount}, ${dateCol})`
     } else if (dialect === "oracle") {
-      return unit === "MM" ? `ADD_MONTHS(${dateCol}, ${amount})` : `(${dateCol} + ${amount})`
+      return isMonth ? `ADD_MONTHS(${dateCol}, ${amount})` : isYear ? `ADD_MONTHS(${dateCol}, (${amount}) * 12)` : `(${dateCol} + ${amount})`
     } else if (dialect === "bigquery") {
-      return `DATE_ADD(${dateCol}, INTERVAL ${amount} ${unit === "MM" ? "MONTH" : unit === "YY" ? "YEAR" : "DAY"})`
+      const bqUnit = isYear ? "YEAR" : isMonth ? "MONTH" : isHour ? "HOUR" : isMinute ? "MINUTE" : isSecond ? "SECOND" : "DAY"
+      return `DATE_ADD(${dateCol}, INTERVAL ${amount} ${bqUnit})`
     } else {
       // db2
-      return `(${dateCol} + (${amount}) ${unit === "MM" ? "MONTHS" : unit === "YY" ? "YEARS" : "DAYS"})`
+      const db2Unit = isYear ? "YEARS" : isMonth ? "MONTHS" : isHour ? "HOURS" : isMinute ? "MINUTES" : isSecond ? "SECONDS" : "DAYS"
+      return `(${dateCol} + (${amount}) ${db2Unit})`
     }
   })
 

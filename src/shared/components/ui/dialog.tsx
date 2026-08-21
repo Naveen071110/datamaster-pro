@@ -34,13 +34,18 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     const { open, onOpenChange } = useDialog()
 
     React.useEffect(() => {
-      if (open) {
-        document.body.style.overflow = "hidden"
-      } else {
-        document.body.style.overflow = ""
+      if (!open) return
+      document.body.style.overflow = "hidden"
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onOpenChange(false)
       }
-      return () => { document.body.style.overflow = "" }
-    }, [open])
+      window.addEventListener("keydown", handleKeyDown)
+      return () => {
+        document.body.style.overflow = ""
+        window.removeEventListener("keydown", handleKeyDown)
+      }
+    }, [open, onOpenChange])
 
     if (!open) return null
 

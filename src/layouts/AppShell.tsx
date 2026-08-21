@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom"
 import { useEffect } from "react"
 import { Sidebar } from "@/layouts/Sidebar"
 import { Header } from "@/layouts/Header"
+import { Footer } from "@/layouts/Footer"
 import { MobileNav } from "@/layouts/MobileNav"
 import { useAppStore } from "@/stores"
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery"
@@ -27,17 +28,18 @@ export default function AppShell() {
   }, [location.pathname, isMobile, setMobileNavOpen])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Sidebar />
       <div
-        className={`transition-all duration-300 ${
+        className={`flex-1 flex flex-col transition-all duration-300 ${
           sidebarOpen ? "md:ml-60" : "md:ml-16"
         }`}
       >
         <Header />
-        <main className="min-h-[calc(100vh-3.5rem)] pb-16 md:pb-0 overflow-x-hidden max-w-full">
+        <main className="flex-1 overflow-x-hidden max-w-full">
           <Outlet />
         </main>
+        <Footer />
       </div>
       <MobileNav />
     </div>
