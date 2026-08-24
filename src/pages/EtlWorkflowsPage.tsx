@@ -321,6 +321,7 @@ export default function EtlWorkflowsPage() {
 
   return (
     <div className={cn("flex flex-col text-white", fullscreen ? "fixed inset-0 z-50 bg-[#0a0a0a]" : "h-[calc(100vh-3.5rem)]")}>
+      <h1 className="sr-only">Visual ETL Architecture &amp; Pipeline DAG Designer — {selectedPreset.name}</h1>
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md">
         <div className="flex items-center gap-3">

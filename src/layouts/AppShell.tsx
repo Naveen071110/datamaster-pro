@@ -4,6 +4,7 @@ import { Sidebar } from "@/layouts/Sidebar"
 import { Header } from "@/layouts/Header"
 import { Footer } from "@/layouts/Footer"
 import { MobileNav } from "@/layouts/MobileNav"
+import { SEO } from "@/shared/components/SEO"
 import { useAppStore } from "@/stores"
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery"
 
@@ -29,6 +30,7 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO />
       <Sidebar />
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${

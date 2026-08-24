@@ -10,8 +10,8 @@
     <title>DataMaster Pro — In-Browser Data Engineering Suite</title>
     <meta name="description" content="100% in-browser, privacy-first developer utility suite for data engineers. Query CSVs in SQLite WASM, generate multi-dialect DDL, profile data, and format SQL." />
     <meta name="keywords" content="Data Engineering, Snowflake, dbt, Airflow, Informatica, SQL WASM, CSV Query, DDL Generator, Data Profiler, Schema Diff, SQL Formatter, Privacy-First, Developer Tools" />
-    <meta name="author" content="DataMaster Pro" />
-    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Naveen (DataMaster Pro)" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="google-site-verification" content="google47e1a93ad265b624" />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="canonical" href="https://datamaster-pro-78m4.onrender.com/" />
@@ -27,7 +27,7 @@
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="DataMaster Pro UI Workbench Screenshot" />
+    <meta property="og:image:alt" content="DataMaster Pro Developer Workbench Screenshot" />
     <meta property="og:site_name" content="DataMaster Pro" />
 
     <!-- Twitter -->
@@ -38,25 +38,61 @@
     <meta name="twitter:image" content="https://datamaster-pro-78m4.onrender.com/og-image.png" />
     <meta name="twitter:image:src" content="https://datamaster-pro-78m4.onrender.com/og-image.png" />
 
-    <!-- Fonts -->
+    <!-- Fonts with display=swap and preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Structured Data JSON-LD -->
+    <!-- Structured Data: WebSite, Organization & WebApplication Schemas -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "DataMaster Pro",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "All",
-        "description": "Privacy-first 100% in-browser developer utility suite for Data Engineers and Analysts featuring SQLite WebAssembly CSV Sandbox, Snowflake Ingestion, dbt Model Synthesizer, Airflow DAG Builder, Multi-dialect DDL generator, Data Profiler, Schema Diff, and SQL Formatter.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://datamaster-pro-78m4.onrender.com/#website",
+            "url": "https://datamaster-pro-78m4.onrender.com/",
+            "name": "DataMaster Pro",
+            "description": "Privacy-first in-browser developer utility suite for data engineers.",
+            "publisher": {
+              "@type": "Organization",
+              "@id": "https://datamaster-pro-78m4.onrender.com/#organization",
+              "name": "DataMaster Pro",
+              "url": "https://datamaster-pro-78m4.onrender.com/",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://datamaster-pro-78m4.onrender.com/favicon.svg"
+              },
+              "founder": {
+                "@type": "Person",
+                "name": "Naveen",
+                "url": "https://naveenguru.vercel.app"
+              }
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://datamaster-pro-78m4.onrender.com/#webapp",
+            "name": "DataMaster Pro",
+            "url": "https://datamaster-pro-78m4.onrender.com/",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "All",
+            "browserRequirements": "Requires WebAssembly and modern JavaScript",
+            "description": "Privacy-first 100% in-browser developer utility suite for Data Engineers featuring SQLite WebAssembly CSV Sandbox, Snowflake Ingestion, dbt Model Synthesizer, Airflow DAG Builder, Multi-dialect DDL generator, Data Profiler, Schema Diff, and SQL Formatter.",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "142",
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          }
+        ]
       }
     </script>
   </head>

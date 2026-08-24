@@ -163,6 +163,15 @@ export default function CodeLibraryPage() {
           </span>
         </div>
 
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            Data Engineering Code Snippet &amp; Recipe Vault
+          </h1>
+          <p className="text-xs text-white/60 mt-0.5">
+            Search 50+ battle-tested code recipes for SQL window functions, Snowflake COPY, dbt models, PySpark, and Airflow DAGs.
+          </p>
+        </div>
+
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
           <Input

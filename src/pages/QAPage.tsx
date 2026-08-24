@@ -123,6 +123,12 @@ export default function QAPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Search bar & Mobile Topic Pills */}
         <div className="p-4 border-b border-border space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Data Engineering QA &amp; Interview Hub</h1>
+              <p className="text-xs text-muted-foreground">40+ architectural assertions, scenarios, and SQL interview concepts</p>
+            </div>
+          </div>
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input

@@ -167,6 +167,7 @@ export default function SqlSandboxPage() {
 
   return (
     <div className="h-[calc(100vh-3.5rem)] flex flex-col">
+      <h1 className="sr-only">In-Browser CSV &amp; SQL WebAssembly Sandbox</h1>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md gap-2">
         <div className="flex items-center gap-2">

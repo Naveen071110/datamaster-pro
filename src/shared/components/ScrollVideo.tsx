@@ -130,8 +130,10 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
       {posterUrl && (
         <img
           src={posterUrl}
-          alt=""
+          alt="DataMaster Pro hero animation background"
           aria-hidden="true"
+          loading="eager"
+          decoding="async"
           className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-700 ${
             isReady ? "opacity-0" : "opacity-70"
           }`}

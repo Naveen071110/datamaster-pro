@@ -18,6 +18,7 @@ import {
   Heart,
 } from "lucide-react"
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
+import { SEO } from "@/shared/components/SEO"
 
 const VIDEO_URL = "/videos/hero-scroll.mp4"
 
@@ -60,6 +61,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative bg-[#0a0a0a] text-white min-h-screen font-sans selection:bg-white/20 antialiased overflow-x-hidden">
+      <SEO />
       {/* Smooth Scroll-Scrubbed Video Background (Zero play/pause buttons) */}
       <ScrollVideo videoUrl={VIDEO_URL} />
 
