@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import type { Bookmark, QueryTab, QueryHistoryEntry } from "@/shared/types/store"
+import { setCookie, getCookie } from "@/lib/cookies"
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9)
@@ -63,12 +64,24 @@ export const useAppStore = create<AppStore>()(
     (set, get) => ({
       // UI Slice
       sidebarOpen: true,
-      theme: "dark",
+      theme: (typeof window !== "undefined" && getCookie<"dark" | "light">("app_theme")) || "dark",
       mobileNavOpen: false,
-      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-      setTheme: (theme) => set({ theme }),
+      toggleSidebar: () =>
+        set((s) => {
+          const next = !s.sidebarOpen
+          setCookie("app_workspace_prefs", { sidebarOpen: next })
+          return { sidebarOpen: next }
+        }),
+      setTheme: (theme) => {
+        setCookie("app_theme", theme)
+        set({ theme })
+      },
       toggleTheme: () =>
-        set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+        set((s) => {
+          const nextTheme = s.theme === "dark" ? "light" : "dark"
+          setCookie("app_theme", nextTheme)
+          return { theme: nextTheme }
+        }),
       setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 
       // SQL Sandbox Slice

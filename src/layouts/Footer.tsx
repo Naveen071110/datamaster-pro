@@ -6,10 +6,26 @@ export function Footer() {
     <footer className="w-full border-t border-border/40 dark:border-white/10 bg-background/80 dark:bg-[#0d0d0d]/80 backdrop-blur-md px-4 sm:px-6 pt-4 pb-20 md:pb-4 transition-colors">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground dark:text-white/60">
         {/* Brand & Privacy Statement */}
-        <div className="flex items-center gap-2">
-          <Terminal className="h-3.5 w-3.5 text-foreground dark:text-white/80" />
-          <span className="font-semibold text-foreground dark:text-white/90">DataMaster Pro</span>
-          <span className="hidden sm:inline text-muted-foreground/60 dark:text-white/40">• In-Browser & Privacy First</span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <Terminal className="h-3.5 w-3.5 text-foreground dark:text-white/80" />
+            <span className="font-semibold text-foreground dark:text-white/90">DataMaster Pro</span>
+            <span className="hidden sm:inline text-muted-foreground/60 dark:text-white/40">• In-Browser &amp; Privacy First</span>
+          </div>
+
+          <span className="hidden sm:inline text-muted-foreground/40 dark:text-white/20">•</span>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("datamaster:open-cookie-modal"))
+              }
+            }}
+            className="text-[11px] font-mono text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white underline underline-offset-2 hover:decoration-white transition-colors flex items-center gap-1"
+          >
+            <span>Cookie Settings</span>
+          </button>
         </div>
 
         {/* Attribution Badge */}

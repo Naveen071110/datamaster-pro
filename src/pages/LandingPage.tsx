@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 import { SEO } from "@/shared/components/SEO"
+import { CookieBanner } from "@/shared/components/CookieBanner"
 
 const VIDEO_URL = "/videos/hero-scroll.mp4"
 
@@ -62,6 +63,7 @@ export default function LandingPage() {
   return (
     <div className="relative bg-[#0a0a0a] text-white min-h-screen font-sans selection:bg-white/20 antialiased overflow-x-hidden">
       <SEO />
+      <CookieBanner />
       {/* Smooth Scroll-Scrubbed Video Background (Zero play/pause buttons) */}
       <ScrollVideo videoUrl={VIDEO_URL} />
 
@@ -481,11 +483,21 @@ export default function LandingPage() {
             </a>
           </div>
 
-          <div className="flex items-center gap-6 text-white/70 font-mono text-[11px]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-white/70 font-mono text-[11px]">
             <button onClick={() => navigate("/app")} className="hover:text-white transition-colors">Dashboard</button>
             <button onClick={() => navigate("/sql-sandbox")} className="hover:text-white transition-colors">SQL WASM</button>
             <button onClick={() => navigate("/ddl-generator")} className="hover:text-white transition-colors">DDL Generator</button>
             <button onClick={() => navigate("/data-profiler")} className="hover:text-white transition-colors">Data Profiler</button>
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("datamaster:open-cookie-modal"))
+                }
+              }}
+              className="text-white/80 hover:text-white underline underline-offset-2 transition-colors"
+            >
+              Cookie Settings
+            </button>
           </div>
         </footer>
       </div>
