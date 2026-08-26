@@ -130,8 +130,21 @@
   </url>
   <url>
     <loc>https://datamaster-pro-78m4.onrender.com/db2-sas-ddl-generator</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
+  </url>
+  <!-- Legal & Compliance -->
+  <url>
+    <loc>https://datamaster-pro-78m4.onrender.com/privacy</loc>
+    <lastmod>2026-08-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+  <url>
+    <loc>https://datamaster-pro-78m4.onrender.com/terms</loc>
+    <lastmod>2026-08-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
   </url>
 </urlset>

@@ -3,5 +3,19 @@ Allow: /
 Disallow: /api/private/
 Disallow: /admin/
 
+# AI Search & Answer Engine Crawlers (AEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 Sitemap: https://datamaster-pro-78m4.onrender.com/sitemap.xml
+# LLMs Machine-Readable Index: https://datamaster-pro-78m4.onrender.com/llms.txt
 

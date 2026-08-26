@@ -1,0 +1,74 @@
+﻿# DataMaster Pro — In-Browser Data Engineering Suite
+
+> Privacy-first, 100% in-browser developer utility suite for Data Engineers, Analytics Engineers, Snowflake Architects, dbt Developers, and ETL Specialists.
+
+- **Website**: https://datamaster-pro-78m4.onrender.com/
+- **Repository**: https://github.com/Naveen071110/datamaster-pro
+- **Author**: Naveen (https://naveenguru.vercel.app)
+- **License**: MIT
+- **Architecture**: 100% Client-Side WebAssembly (Zero Server Uploads)
+
+---
+
+## 1. Micro-SaaS Utilities Suite (9 Tools)
+
+- **CSV & SQL WASM Sandbox** (/sql-sandbox):
+  - Query arbitrary .csv files in-browser using SQLite WebAssembly (sql.js).
+  - Features Monaco Editor with syntax highlighting, schema tree explorer, and instant export to CSV/JSON.
+- **CSV to DDL Generator** (/ddl-generator):
+  - Automatically infers data types from CSV rows or JSON objects.
+  - Synthesizes CREATE TABLE DDL & INSERT INTO statements across 5 dialects: PostgreSQL, Snowflake, BigQuery, MySQL, and SQLite.
+- **Data Profiler & Health Inspector** (/data-profiler):
+  - Computes statistical summaries: NULL percentages, unique cardinalities, min/max/mean distributions, and data quality alerts.
+- **Synthetic Mock Data Generator** (/test-data-generator):
+  - Generates realistic test datasets (Users, Orders, Companies, Financial Ledgers, Server Logs, DummyJSON, RandomUser).
+  - Export to RFC 4180 CSV, JSON, or SQL inserts.
+- **Live FX Rates & Currency Normalizer** (/currency-converter):
+  - Live foreign exchange rate converter across 30+ currencies with automated dim_exchange_rates DDL generation for data warehouses.
+- **Schema Diff & Drift Inspector** (/schema-diff):
+  - Side-by-side DDL schema comparator highlighting added, removed, and modified columns with automated ALTER TABLE migration scripts.
+- **SQL Formatter & Beautifier** (/sql-formatter):
+  - Formats unaligned SQL, standardizes keyword casing (UPPERCASE/lowercase), and customizes indentation width.
+- **Snippet Vault** (/code-library):
+  - Curated collection of 50+ production-tested code snippets covering SQL Window Functions, CTEs, PySpark DataFrames, DuckDB, Polars, and Airflow DAGs.
+- **ETL Architecture Builder** (/etl-workflows):
+  - Visual ReactFlow canvas to design, visualize, and document data pipeline DAG architectures.
+
+---
+
+## 2. ETL & Cloud Data Suite (5 Tools)
+
+- **Snowflake Stage & COPY Synthesizer** (/snowflake-stage-generator):
+  - Generates External/Internal Stages (S3, Azure Blob, GCS), File Formats (PARQUET, CSV, JSON), COPY INTO pipelines, Snowpipe definitions, and warehouse credit cost estimates.
+- **dbt Model & Schema Synthesizer** (/dbt-model-generator):
+  - Builds modular dbt SQL models with {{ source() }} and {{ ref() }} CTE patterns and companion schema.yml files with automated column tests (unique, 
+ot_null, ccepted_values).
+- **Apache Airflow Python DAG Generator** (/airflow-dag-generator):
+  - Constructs production-ready Airflow 2.x Python DAG scripts with PythonOperator, BashOperator, SnowflakeOperator, task dependency chains (>>), and cron schedule validation.
+- **Informatica XML to SQL Converter** (/informatica-mapping-to-sql):
+  - Parses Informatica PowerCenter & IICS mapping .xml exports into readable SQL CTE queries and resolves .par parameter files ($).
+- **Informatica Expression Transpiler** (/informatica-expression-transpiler):
+  - Validates and transpiles Informatica transformation functions (IIF, DECODE, ISNULL, ADD_TO_DATE) into dialect-specific SQL.
+
+---
+
+## 3. Diagnostics & QA Suite (5 Tools)
+
+- **Query Performance Analyzer** (/performance-analyzer):
+  - Evaluates SQL execution patterns, detects Cartesian joins / full table scans, and provides optimization recommendations.
+- **Schema Validator & Anti-Pattern Linter** (/schema-validator):
+  - Audits DDL definitions for missing primary keys, unindexed foreign keys, reserved keywords, and anti-patterns.
+- **Data QA Assertion Suite** (/qa):
+  - Runs automated data quality assertions, nullability checks, unique constraint validations, and numeric range bounds.
+- **Pipeline Debugger & Troubleshooting Guide** (/troubleshooting):
+  - Interactive decision-tree guide for diagnosing WebAssembly memory limits, SQL syntax errors, schema drift, and ingestion bottlenecks.
+- **DB2 & SAS Parameter Resolver** (/db2-sas-ddl-generator):
+  - Binds DB2 host variables (:param) and SAS macros (&macro) with parameter definitions into runnable SQL queries.
+
+---
+
+## 4. Privacy, Security & Cookie Policy
+
+- **100% In-Browser Execution**: Zero backend server processing. All queries, CSV files, and enterprise schemas remain strictly in the user's browser memory.
+- **OWASP-Hardened Cookie Architecture**: Strictly necessary session management, SameSite=Lax/Strict flags, CSRF tokens, and 4KB payload limits.
+- **GDPR / ePrivacy Compliance**: Granular consent gating with automatic purge on revocation.

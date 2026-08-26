@@ -79,53 +79,77 @@ export function SEO(props: SEOProps) {
       document.head.appendChild(schemaScript)
     }
 
-    let jsonLdData: Record<string, any>
+    const primaryEntity = props.customSchema
+      ? props.customSchema
+      : routeSEO.schemaType === "FAQPage" && routeSEO.faqItems
+      ? {
+          "@type": "FAQPage",
+          "@id": `${canonicalUrl}#faq`,
+          "mainEntity": routeSEO.faqItems.map((item) => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": item.answer,
+            },
+          })),
+        }
+      : {
+          "@type": routeSEO.schemaType || "SoftwareApplication",
+          "@id": `${canonicalUrl}#app`,
+          "name": routeSEO.headingH1,
+          "headline": title,
+          "description": description,
+          "applicationCategory": routeSEO.category || "DeveloperApplication",
+          "operatingSystem": "All",
+          "url": canonicalUrl,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+          },
+          "author": {
+            "@type": "Person",
+            "name": "Naveen",
+            "url": "https://naveenguru.vercel.app",
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "DataMaster Pro",
+            "url": BASE_URL,
+            "logo": {
+              "@type": "ImageObject",
+              "url": `${BASE_URL}/favicon.svg`,
+            },
+          },
+        }
 
-    if (props.customSchema) {
-      jsonLdData = props.customSchema
-    } else if (routeSEO.schemaType === "FAQPage" && routeSEO.faqItems) {
-      jsonLdData = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": routeSEO.faqItems.map((item) => ({
-          "@type": "Question",
-          "name": item.question,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": item.answer,
-          },
-        })),
-      }
-    } else {
-      jsonLdData = {
-        "@context": "https://schema.org",
-        "@type": routeSEO.schemaType || "SoftwareApplication",
-        "name": routeSEO.headingH1,
-        "headline": title,
-        "description": description,
-        "applicationCategory": routeSEO.category || "DeveloperApplication",
-        "operatingSystem": "All",
-        "url": canonicalUrl,
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
+    const breadcrumbEntity = {
+      "@type": "BreadcrumbList",
+      "@id": `${canonicalUrl}#breadcrumb`,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": BASE_URL,
         },
-        "author": {
-          "@type": "Person",
-          "name": "Naveen",
-          "url": "https://naveenguru.vercel.app",
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": "DataMaster Pro",
-          "url": BASE_URL,
-          "logo": {
-            "@type": "ImageObject",
-            "url": `${BASE_URL}/favicon.svg`,
-          },
-        },
-      }
+        ...(routeSEO.path !== "/"
+          ? [
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": routeSEO.headingH1,
+                "item": canonicalUrl,
+              },
+            ]
+          : []),
+      ],
+    }
+
+    const jsonLdData = {
+      "@context": "https://schema.org",
+      "@graph": [primaryEntity, breadcrumbEntity],
     }
 
     schemaScript.textContent = JSON.stringify(jsonLdData)

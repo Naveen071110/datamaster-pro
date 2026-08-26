@@ -26,6 +26,8 @@ const SnowflakeStageGeneratorPage = lazy(() => import("@/pages/SnowflakeStageGen
 const DbtModelGeneratorPage = lazy(() => import("@/pages/DbtModelGeneratorPage"))
 const AirflowDagGeneratorPage = lazy(() => import("@/pages/AirflowDagGeneratorPage"))
 const Db2SasDdlPage = lazy(() => import("@/pages/Db2SasDdlPage"))
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"))
+const TermsPage = lazy(() => import("@/pages/TermsPage"))
 
 function LazyPage({ Component, variant }: { Component: React.ComponentType; variant?: "home" | "full" | "grid" | "list" | "editor" }) {
   return (
@@ -84,6 +86,10 @@ const routes: RouteObject[] = [
       { path: "schema-validator", element: <LazyPage Component={SchemaValidatorPage} variant="editor" /> },
       { path: "troubleshooting", element: <LazyPage Component={TroubleshootingPage} variant="full" /> },
       { path: "db2-sas-ddl-generator", element: <LazyPage Component={Db2SasDdlPage} variant="editor" /> },
+
+      // Legal & Compliance
+      { path: "privacy", element: <LazyPage Component={PrivacyPage} variant="full" /> },
+      { path: "terms", element: <LazyPage Component={TermsPage} variant="full" /> },
 
       { path: "*", element: <NotFound /> },
     ],

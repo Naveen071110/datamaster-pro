@@ -15,6 +15,24 @@ export function Footer() {
 
           <span className="hidden sm:inline text-muted-foreground/40 dark:text-white/20">•</span>
 
+          <a
+            href="/privacy"
+            className="text-[11px] font-mono text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white underline underline-offset-2 transition-colors"
+          >
+            Privacy Policy
+          </a>
+
+          <span className="hidden sm:inline text-muted-foreground/40 dark:text-white/20">•</span>
+
+          <a
+            href="/terms"
+            className="text-[11px] font-mono text-muted-foreground dark:text-white/60 hover:text-foreground dark:hover:text-white underline underline-offset-2 transition-colors"
+          >
+            Terms
+          </a>
+
+          <span className="hidden sm:inline text-muted-foreground/40 dark:text-white/20">•</span>
+
           <button
             type="button"
             onClick={() => {

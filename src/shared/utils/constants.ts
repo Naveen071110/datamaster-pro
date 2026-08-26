@@ -1,5 +1,5 @@
 export const APP_NAME = "DataMaster Pro"
-export const APP_TAGLINE = "ETL & SQL Knowledge Base"
+export const APP_TAGLINE = "Privacy-First Data Engineering Utility Suite"
 
 export const NAV_ITEMS = [
   { path: "/app", label: "Dashboard Overview", icon: "LayoutDashboard", section: "overview", order: 0 },

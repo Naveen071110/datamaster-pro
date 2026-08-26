@@ -487,7 +487,8 @@ export default function LandingPage() {
             <button onClick={() => navigate("/app")} className="hover:text-white transition-colors">Dashboard</button>
             <button onClick={() => navigate("/sql-sandbox")} className="hover:text-white transition-colors">SQL WASM</button>
             <button onClick={() => navigate("/ddl-generator")} className="hover:text-white transition-colors">DDL Generator</button>
-            <button onClick={() => navigate("/data-profiler")} className="hover:text-white transition-colors">Data Profiler</button>
+            <button onClick={() => navigate("/privacy")} className="hover:text-white transition-colors">Privacy Policy</button>
+            <button onClick={() => navigate("/terms")} className="hover:text-white transition-colors">Terms</button>
             <button
               onClick={() => {
                 if (typeof window !== "undefined") {

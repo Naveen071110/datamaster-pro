@@ -227,6 +227,24 @@ export const SEO_ROUTES_MAP: Record<string, RouteSEO> = {
     category: "DeveloperApplication",
     schemaType: "SoftwareApplication",
   },
+  "/privacy": {
+    path: "/privacy",
+    title: "Privacy Policy & Zero Data Retention Guarantee | DataMaster Pro",
+    description: "Learn about DataMaster Pro's 100% in-browser, client-side WebAssembly architecture with zero server uploads, no data retention, and GDPR cookie controls.",
+    keywords: "Privacy Policy, Zero Data Uploads, Client-Side WASM, GDPR Cookie Compliance, Developer Privacy",
+    headingH1: "Privacy Policy & Client-Side Guarantee",
+    category: "LegalService",
+    schemaType: "WebApplication",
+  },
+  "/terms": {
+    path: "/terms",
+    title: "Terms of Service & MIT Open-Source License | DataMaster Pro",
+    description: "Terms of service, MIT open-source license information, code generation disclaimers, and acceptable use guidelines for DataMaster Pro.",
+    keywords: "Terms of Service, MIT License, Open Source Data Tools, Code Generation Disclaimer",
+    headingH1: "Terms of Service & License",
+    category: "LegalService",
+    schemaType: "WebApplication",
+  },
 }
 
 export function getSEOData(pathname: string): RouteSEO {
