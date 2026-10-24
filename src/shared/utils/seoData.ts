@@ -7,7 +7,7 @@ export interface RouteSEO {
   keywords: string
   headingH1: string
   category: string
-  schemaType?: "WebApplication" | "SoftwareApplication" | "FAQPage" | "WebSite"
+  schemaType?: "WebApplication" | "SoftwareApplication" | "FAQPage" | "WebSite" | "ContactPage"
   faqItems?: Array<{ question: string; answer: string }>
 }
 
@@ -243,6 +243,33 @@ export const SEO_ROUTES_MAP: Record<string, RouteSEO> = {
     keywords: "Terms of Service, MIT License, Open Source Data Tools, Code Generation Disclaimer",
     headingH1: "Terms of Service & License",
     category: "LegalService",
+    schemaType: "WebApplication",
+  },
+  "/contact": {
+    path: "/contact",
+    title: "Contact Us & Developer Support | DataMaster Pro",
+    description: "Get in touch with the DataMaster Pro team. Report pipeline bugs, request enterprise data features, or inquire about open-source collaboration.",
+    keywords: "Contact DataMaster, Developer Support, Bug Report, Feature Request, Data Engineering Tools",
+    headingH1: "Contact & Developer Support",
+    category: "DeveloperApplication",
+    schemaType: "ContactPage",
+  },
+  "/thank-you": {
+    path: "/thank-you",
+    title: "Thank You | DataMaster Pro",
+    description: "Thank you for reaching out to the DataMaster Pro team. We have received your inquiry and will follow up shortly.",
+    keywords: "Thank You, DataMaster Support",
+    headingH1: "Thank You for Reaching Out",
+    category: "DeveloperApplication",
+    schemaType: "WebApplication",
+  },
+  "/404": {
+    path: "/404",
+    title: "Page Not Found (404) | DataMaster Pro",
+    description: "The requested data engineering tool or page could not be found. Explore our 19 client-side WebAssembly utilities or return to the workbench.",
+    keywords: "404, Page Not Found, DataMaster Pro",
+    headingH1: "Lost in the Data Pipeline? (404)",
+    category: "DeveloperApplication",
     schemaType: "WebApplication",
   },
 }

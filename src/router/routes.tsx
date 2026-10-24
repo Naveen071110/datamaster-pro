@@ -28,26 +28,15 @@ const AirflowDagGeneratorPage = lazy(() => import("@/pages/AirflowDagGeneratorPa
 const Db2SasDdlPage = lazy(() => import("@/pages/Db2SasDdlPage"))
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"))
 const TermsPage = lazy(() => import("@/pages/TermsPage"))
+const ContactPage = lazy(() => import("@/pages/ContactPage"))
+const ThankYouPage = lazy(() => import("@/pages/ThankYouPage"))
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"))
 
 function LazyPage({ Component, variant }: { Component: React.ComponentType; variant?: "home" | "full" | "grid" | "list" | "editor" }) {
   return (
     <Suspense fallback={<LoadingSkeleton variant={variant || "full"} />}>
       <Component />
     </Suspense>
-  )
-}
-
-function NotFound() {
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
-        <p className="text-muted-foreground text-lg mb-2">Page not found</p>
-        <p className="text-sm text-muted-foreground">
-          The page you're looking for doesn't exist.
-        </p>
-      </div>
-    </div>
   )
 }
 
@@ -87,11 +76,14 @@ const routes: RouteObject[] = [
       { path: "troubleshooting", element: <LazyPage Component={TroubleshootingPage} variant="full" /> },
       { path: "db2-sas-ddl-generator", element: <LazyPage Component={Db2SasDdlPage} variant="editor" /> },
 
-      // Legal & Compliance
+      // Legal & Support
       { path: "privacy", element: <LazyPage Component={PrivacyPage} variant="full" /> },
       { path: "terms", element: <LazyPage Component={TermsPage} variant="full" /> },
+      { path: "contact", element: <LazyPage Component={ContactPage} variant="full" /> },
+      { path: "thank-you", element: <LazyPage Component={ThankYouPage} variant="full" /> },
+      { path: "404", element: <LazyPage Component={NotFoundPage} variant="full" /> },
 
-      { path: "*", element: <NotFound /> },
+      { path: "*", element: <LazyPage Component={NotFoundPage} variant="full" /> },
     ],
   },
 ]

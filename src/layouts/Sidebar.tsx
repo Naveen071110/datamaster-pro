@@ -22,6 +22,7 @@ import {
   Workflow,
   Code2,
   Database,
+  MessageSquare,
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/shared/utils/cn"
@@ -188,6 +189,25 @@ export function Sidebar() {
             ))}
           </div>
         </ScrollArea>
+
+        {/* Mobile Contact Footer */}
+        <div className="p-3 border-t border-white/10 shrink-0">
+          <NavLink
+            to="/contact"
+            onClick={() => setMobileNavOpen(false)}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                isActive
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
+              )
+            }
+          >
+            <MessageSquare className="h-4 w-4 shrink-0 text-blue-400" />
+            <span>Contact &amp; Support</span>
+          </NavLink>
+        </div>
       </aside>
 
       {/* Desktop Sidebar */}
@@ -263,6 +283,27 @@ export function Sidebar() {
             ))}
           </div>
         </ScrollArea>
+
+        {/* Desktop Contact Footer */}
+        <div className="p-2 border-t border-white/10 shrink-0">
+          <NavLink
+            to="/contact"
+            title={!sidebarOpen ? "Contact & Support" : undefined}
+            aria-label="Contact & Support"
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors",
+                isActive
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/70 hover:bg-white/10 hover:text-white",
+                !sidebarOpen && "justify-center px-0"
+              )
+            }
+          >
+            <MessageSquare className="h-4 w-4 shrink-0 text-blue-400" />
+            {sidebarOpen && <span className="truncate">Contact &amp; Support</span>}
+          </NavLink>
+        </div>
       </aside>
     </>
   )

@@ -147,4 +147,11 @@
     <changefreq>monthly</changefreq>
     <priority>0.50</priority>
   </url>
+  <!-- Contact & Support -->
+  <url>
+    <loc>https://datamaster-pro-78m4.onrender.com/contact</loc>
+    <lastmod>2026-10-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
 </urlset>

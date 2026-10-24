@@ -11,6 +11,8 @@ interface SEOProps {
   ogImage?: string
   type?: string
   customSchema?: Record<string, any>
+  noindex?: boolean
+  robots?: string
 }
 
 export function SEO(props: SEOProps) {
@@ -42,7 +44,9 @@ export function SEO(props: SEOProps) {
     // 2. Standard Meta Tags
     setMetaTag("name", "description", description)
     setMetaTag("name", "keywords", keywords)
-    setMetaTag("name", "robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1")
+    const isNoindexRoute = props.noindex || location.pathname === "/404" || location.pathname === "/thank-you"
+    const robotsDirective = props.robots || (isNoindexRoute ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1")
+    setMetaTag("name", "robots", robotsDirective)
 
     // 3. Canonical Link
     let canonicalLink = document.querySelector("link[rel='canonical']") as HTMLLinkElement | null

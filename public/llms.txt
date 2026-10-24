@@ -1,4 +1,4 @@
-﻿# DataMaster Pro — In-Browser Data Engineering Suite
+# DataMaster Pro — In-Browser Data Engineering Suite
 
 > Privacy-first, 100% in-browser developer utility suite for Data Engineers, Analytics Engineers, Snowflake Architects, dbt Developers, and ETL Specialists.
 
@@ -67,8 +67,9 @@ ot_null, ccepted_values).
 
 ---
 
-## 4. Privacy, Security & Cookie Policy
+## 4. Privacy, Security & Contact
 
 - **100% In-Browser Execution**: Zero backend server processing. All queries, CSV files, and enterprise schemas remain strictly in the user's browser memory.
 - **OWASP-Hardened Cookie Architecture**: Strictly necessary session management, SameSite=Lax/Strict flags, CSRF tokens, and 4KB payload limits.
 - **GDPR / ePrivacy Compliance**: Granular consent gating with automatic purge on revocation.
+- **Support & Developer Contact** (/contact): Direct contact channel (naveenguru78@gmail.com) for bug reports, schema generator requests, and security disclosures.

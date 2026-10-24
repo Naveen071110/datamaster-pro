@@ -121,7 +121,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-white">5. Contact & Inquiries</h2>
           <p>
-            If you have questions about this Privacy Policy or our security model, please contact the developer via <a href="https://naveenguru.vercel.app" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">Naveen&apos;s Portfolio</a> or file an issue on <a href="https://github.com/Naveen071110/datamaster-pro" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">GitHub</a>.
+            If you have questions about this Privacy Policy or our security model, please contact the developer via our <a href="/contact" className="text-white underline underline-offset-2 hover:text-white/80">Contact Page</a>, <a href="https://naveenguru.vercel.app" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">Naveen&apos;s Portfolio</a>, or file an issue on <a href="https://github.com/Naveen071110/datamaster-pro" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">GitHub</a>.
           </p>
         </section>
       </div>

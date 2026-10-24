@@ -20,6 +20,7 @@ import {
 import { ScrollVideo } from "@/shared/components/ScrollVideo"
 import { SEO } from "@/shared/components/SEO"
 import { CookieBanner } from "@/shared/components/CookieBanner"
+import { useAnalyticsTracker } from "@/lib/analytics/tracker"
 
 const VIDEO_URL = "/videos/hero-scroll.mp4"
 
@@ -48,7 +49,20 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showStickyCta, setShowStickyCta] = useState(false)
   useRevealObserver()
+  useAnalyticsTracker()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show sticky CTA on mobile once user scrolls past hero section (~350px)
+      const scrolled = window.scrollY > 350
+      setShowStickyCta(scrolled)
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -182,6 +196,13 @@ export default function LandingPage() {
                 className="text-left py-2 text-sm text-white/80 hover:text-white flex items-center justify-between"
               >
                 <span>Code Snippet Vault</span>
+                <ChevronRight className="h-4 w-4 text-white/40" />
+              </button>
+              <button
+                onClick={() => { setMobileMenuOpen(false); navigate("/contact") }}
+                className="text-left py-2 text-sm text-white/80 hover:text-white flex items-center justify-between border-t border-white/5 pt-3"
+              >
+                <span>Contact &amp; Support</span>
                 <ChevronRight className="h-4 w-4 text-white/40" />
               </button>
             </div>
@@ -489,6 +510,7 @@ export default function LandingPage() {
             <button onClick={() => navigate("/ddl-generator")} className="hover:text-white transition-colors">DDL Generator</button>
             <button onClick={() => navigate("/privacy")} className="hover:text-white transition-colors">Privacy Policy</button>
             <button onClick={() => navigate("/terms")} className="hover:text-white transition-colors">Terms</button>
+            <button onClick={() => navigate("/contact")} className="hover:text-white transition-colors">Contact</button>
             <button
               onClick={() => {
                 if (typeof window !== "undefined") {
@@ -501,6 +523,31 @@ export default function LandingPage() {
             </button>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA Bar (Item 11: Sticky mobile CTA) */}
+        {showStickyCta && (
+          <aside aria-label="Quick launch bar" className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-[#0a0a0a]/95 backdrop-blur-2xl border-t border-white/15 animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-md bg-white/10 flex items-center justify-center">
+                  <Hexagon className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-semibold text-white leading-none">DataMaster Pro</span>
+                  <span className="text-[10px] text-white/50 font-mono">100% In-Browser</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/app")}
+                className="px-4 py-2 rounded-lg bg-white text-black font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-white/10 hover:bg-white/90 transition-all active:scale-95"
+              >
+                <span>⚡ Open Tools</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   )

@@ -107,7 +107,7 @@ export default function TermsPage() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-white">6. Contact</h2>
           <p>
-            For questions regarding these Terms, please reach out via <a href="https://naveenguru.vercel.app" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">Naveen&apos;s Portfolio</a>.
+            For questions regarding these Terms, please reach out via our <a href="/contact" className="text-white underline underline-offset-2 hover:text-white/80">Contact Page</a> or <a href="https://naveenguru.vercel.app" target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-2 hover:text-white/80">Naveen&apos;s Portfolio</a>.
           </p>
         </section>
       </div>

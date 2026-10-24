@@ -8,19 +8,16 @@ import { SEO } from "@/shared/components/SEO"
 import { CookieBanner } from "@/shared/components/CookieBanner"
 import { useAppStore } from "@/stores"
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery"
+import { useAnalyticsTracker } from "@/lib/analytics/tracker"
 
 export default function AppShell() {
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
   const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen)
-  const incrementPageVisit = useAppStore((s) => s.incrementPageVisit)
   const location = useLocation()
   const isMobile = useMediaQuery("(max-width: 767px)")
 
-  // Track page visits
-  useEffect(() => {
-    const pageName = location.pathname === "/" ? "home" : location.pathname.slice(1)
-    incrementPageVisit(pageName)
-  }, [location.pathname, incrementPageVisit])
+  // Auto-track route transitions & check consent
+  useAnalyticsTracker()
 
   // Close sidebar on mobile by default
   useEffect(() => {
