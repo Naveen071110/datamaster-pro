@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
 import { Copy, Download, Upload, Check } from "lucide-react"
+import { parseCsvLine } from "@/shared/utils/csv"
 
 type Dialect = "postgres" | "snowflake" | "bigquery" | "mysql" | "sqlite"
 
@@ -9,32 +10,6 @@ const DIALECT_TYPES: Record<Dialect, { string: string; integer: string; float: s
   bigquery: { string: "STRING", integer: "INT64", float: "FLOAT64", boolean: "BOOL", timestamp: "TIMESTAMP" },
   mysql: { string: "VARCHAR(255)", integer: "INT", float: "DECIMAL(12,2)", boolean: "TINYINT(1)", timestamp: "DATETIME" },
   sqlite: { string: "TEXT", integer: "INTEGER", float: "REAL", boolean: "INTEGER", timestamp: "TEXT" },
-}
-
-// Quote-aware CSV line tokenizer
-function parseCsvLine(line: string): string[] {
-  const result: string[] = []
-  let current = ""
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"'
-        i++
-      } else {
-        inQuotes = !inQuotes
-      }
-    } else if (char === "," && !inQuotes) {
-      result.push(current.trim())
-      current = ""
-    } else {
-      current += char
-    }
-  }
-  result.push(current.trim())
-  return result
 }
 
 const SAMPLE_CSV = `id,first_name,last_name,email,salary,is_active,joined_date
@@ -121,21 +96,24 @@ export default function DdlGeneratorPage() {
       return { originalName: header, colName: cleanName, type: inferredType }
     })
 
+    const cleanTableName = tableName.trim().replace(/[^a-zA-Z0-9_]/g, "_") || "generated_table"
+    const safeTableName = /^[0-9]/.test(cleanTableName) ? "tbl_" + cleanTableName : cleanTableName
+
     // Build SQL output
     let sql = `-- Generated DDL for ${dialect.toUpperCase()}\n`
     sql += `-- Total Columns: ${headers.length} | Sample Rows: ${rows.length}\n\n`
 
     if (includeDropTable) {
-      sql += `DROP TABLE IF EXISTS ${tableName};\n\n`
+      sql += `DROP TABLE IF EXISTS ${safeTableName};\n\n`
     }
 
-    sql += `CREATE TABLE ${tableName} (\n`
+    sql += `CREATE TABLE ${safeTableName} (\n`
     sql += inferredSchema.map((col) => `  ${col.colName.padEnd(20)} ${col.type}`).join(",\n")
     sql += `\n);\n`
 
     if (includeInsert && rows.length > 0) {
       sql += `\n-- Insert statements\n`
-      sql += `INSERT INTO ${tableName} (${inferredSchema.map((c) => c.colName).join(", ")})\nVALUES\n`
+      sql += `INSERT INTO ${safeTableName} (${inferredSchema.map((c) => c.colName).join(", ")})\nVALUES\n`
 
       const valueTuples = rows.map((row) => {
         const vals = inferredSchema.map((col) => {
@@ -193,9 +171,11 @@ export default function DdlGeneratorPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${tableName}_${dialect}.sql`
+    a.download = `${tableName.replace(/[^a-zA-Z0-9_-]/g, "_") || "table"}_${dialect}.sql`
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (

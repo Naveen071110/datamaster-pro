@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react"
 import { createBrowserRouter, type RouteObject } from "react-router-dom"
 import AppShell from "@/layouts/AppShell"
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton"
+import { RootErrorBoundary } from "@/shared/components/RootErrorBoundary"
 
 const LandingPage = lazy(() => import("@/pages/LandingPage"))
 const HomePage = lazy(() => import("@/pages/HomePage"))
@@ -44,10 +45,12 @@ const routes: RouteObject[] = [
   {
     path: "/",
     element: <LazyPage Component={LandingPage} variant="full" />,
+    errorElement: <RootErrorBoundary />,
   },
   {
     path: "/",
     element: <AppShell />,
+    errorElement: <RootErrorBoundary />,
     children: [
       { path: "app", element: <LazyPage Component={HomePage} variant="home" /> },
       

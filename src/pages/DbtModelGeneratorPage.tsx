@@ -110,52 +110,70 @@ export default function DbtModelGeneratorPage() {
     return cols
   }, [rawSql, uniqueKey])
 
+  // Helper to sanitize identifiers and prevent Jinja / YAML breakouts
+  const sanitizeIdent = (name: string, fallback = "item") => {
+    let cleaned = name.replace(/[{}\\%#'"`;\r\n]/g, "").trim().replace(/[^a-zA-Z0-9_]/g, "_")
+    if (/^[0-9]/.test(cleaned)) cleaned = "col_" + cleaned
+    return cleaned || fallback
+  }
+
   // Generate dbt SQL Model (.sql)
   const generatedDbtSql = useMemo(() => {
+    const safeModelName = sanitizeIdent(modelName, "stg_model")
+    const safeSourceName = sanitizeIdent(sourceName, "source_db")
+    const safeSourceTable = sanitizeIdent(sourceTable, "raw_table")
+    const safeUniqueKey = sanitizeIdent(uniqueKey, "id")
+    const safeWatermark = sanitizeIdent(watermarkColumn, "updated_at")
+
     let sql = `{{ config(\n`
     sql += `    materialized='${materialization}'`
     if (materialization === "incremental") {
-      sql += `,\n    unique_key='${uniqueKey}',\n    incremental_strategy='${incrementalStrategy}'`
+      sql += `,\n    unique_key='${safeUniqueKey}',\n    incremental_strategy='${incrementalStrategy}'`
     }
     sql += `\n) }}\n\n`
 
     sql += `with source as (\n`
-    sql += `    select * from {{ source('${sourceName}', '${sourceTable}') }}\n`
+    sql += `    select * from {{ source('${safeSourceName}', '${safeSourceTable}') }}\n`
     sql += `),\n\n`
 
     sql += `renamed as (\n`
     sql += `    select\n`
-    sql += parsedColumns.map((c) => `        ${c.name}`).join(",\n")
+    sql += parsedColumns.map((c) => `        ${sanitizeIdent(c.name)}`).join(",\n")
     sql += `\n    from source\n`
     if (materialization === "incremental") {
       sql += `    {% if is_incremental() %}\n`
-      sql += `    where ${watermarkColumn} >= (select coalesce(max(${watermarkColumn}), '1970-01-01') from {{ this }})\n`
+      sql += `    where ${safeWatermark} >= (select coalesce(max(${safeWatermark}), '1970-01-01') from {{ this }})\n`
       sql += `    {% endif %}\n`
     }
     sql += `)\n\n`
     sql += `select * from renamed\n`
 
     return sql
-  }, [materialization, uniqueKey, incrementalStrategy, watermarkColumn, sourceName, sourceTable, parsedColumns])
+  }, [materialization, uniqueKey, incrementalStrategy, watermarkColumn, sourceName, sourceTable, parsedColumns, modelName])
 
   // Generate dbt schema.yml
   const generatedSchemaYml = useMemo(() => {
+    const safeModelName = sanitizeIdent(modelName, "stg_model")
+    const safeSourceName = sanitizeIdent(sourceName, "source_db")
+    const safeSourceTable = sanitizeIdent(sourceTable, "raw_table")
+
     let yml = `version: 2\n\n`
     yml += `sources:\n`
-    yml += `  - name: ${sourceName}\n`
+    yml += `  - name: "${safeSourceName}"\n`
     yml += `    description: "Raw operational database ingestion layer."\n`
     yml += `    tables:\n`
-    yml += `      - name: ${sourceTable}\n`
-    yml += `        description: "Raw source records for ${sourceTable}."\n\n`
+    yml += `      - name: "${safeSourceTable}"\n`
+    yml += `        description: "Raw source records for ${safeSourceTable}."\n\n`
 
     yml += `models:\n`
-    yml += `  - name: ${modelName}\n`
-    yml += `    description: "Cleaned and standardized staging model for ${sourceTable}."\n`
+    yml += `  - name: "${safeModelName}"\n`
+    yml += `    description: "Cleaned and standardized staging model for ${safeSourceTable}."\n`
     yml += `    columns:\n`
 
     parsedColumns.forEach((col) => {
-      yml += `      - name: ${col.name}\n`
-      yml += `        description: "The unique ${col.name.replace(/_/g, " ")} identifier."\n`
+      const safeColName = sanitizeIdent(col.name)
+      yml += `      - name: "${safeColName}"\n`
+      yml += `        description: "The unique ${safeColName.replace(/_/g, " ")} identifier."\n`
       if (col.isPrimary) {
         yml += `        tests:\n`
         yml += `          - unique\n`
@@ -164,7 +182,7 @@ export default function DbtModelGeneratorPage() {
         yml += `        tests:\n`
         yml += `          - not_null\n`
       }
-      if (col.name.toLowerCase() === "status") {
+      if (safeColName.toLowerCase() === "status") {
         yml += `        tests:\n`
         yml += `          - accepted_values:\n`
         yml += `              values: ['COMPLETED', 'PENDING', 'CANCELLED', 'REFUNDED']\n`
@@ -182,17 +200,20 @@ export default function DbtModelGeneratorPage() {
   }
 
   const handleDownload = () => {
+    const safeModelName = sanitizeIdent(modelName, "stg_model")
     const isSql = activeOutputTab === "sql"
     const text = isSql ? generatedDbtSql : generatedSchemaYml
-    const filename = isSql ? `${modelName}.sql` : `schema_${modelName}.yml`
+    const filename = isSql ? `${safeModelName}.sql` : `schema_${safeModelName}.yml`
     const mime = isSql ? "application/sql" : "application/x-yaml"
     const blob = new Blob([text], { type: mime })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
     a.download = filename
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
@@ -350,9 +371,37 @@ export default function DbtModelGeneratorPage() {
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
               {activeOutputTab === "sql" ? (
-                <Editor height="460px" defaultLanguage="sql" theme="vs-dark" value={generatedDbtSql} options={{ readOnly: true }} />
+                <Editor
+                  height="460px"
+                  defaultLanguage="sql"
+                  theme="vs-dark"
+                  value={generatedDbtSql}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    renderLineHighlight: "none",
+                    folding: false,
+                    wordWrap: "on",
+                  }}
+                />
               ) : (
-                <Editor height="460px" defaultLanguage="yaml" theme="vs-dark" value={generatedSchemaYml} options={{ readOnly: true }} />
+                <Editor
+                  height="460px"
+                  defaultLanguage="yaml"
+                  theme="vs-dark"
+                  value={generatedSchemaYml}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    renderLineHighlight: "none",
+                    folding: false,
+                    wordWrap: "on",
+                  }}
+                />
               )}
             </div>
           </CardContent>

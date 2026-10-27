@@ -74,10 +74,12 @@ export function getCookie<T = string>(name: CookieKey): T | null {
     return null
   }
 
-  // Attempt JSON parse
+  // Attempt JSON/literal parse (for structured objects, arrays, and boolean primitives)
   if (
     (rawValue.startsWith("{") && rawValue.endsWith("}")) ||
-    (rawValue.startsWith("[") && rawValue.endsWith("]"))
+    (rawValue.startsWith("[") && rawValue.endsWith("]")) ||
+    rawValue === "true" ||
+    rawValue === "false"
   ) {
     try {
       return JSON.parse(rawValue) as T

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Sparkles,
@@ -19,6 +19,7 @@ import {
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
+import { serializeToCsv } from "@/shared/utils/csv"
 import Editor from "@monaco-editor/react"
 
 type DataSource = "local_generator" | "dummyjson" | "randomuser" | "countries"
@@ -76,6 +77,81 @@ function getRandomDate(startYear: number = 2023): string {
   return date.toISOString().replace("T", " ").substring(0, 19)
 }
 
+// Local synthetic fallback generators for resilient offline operation
+function generateDummyJsonFallback(resource: DummyResourceType, count: number): Record<string, any>[] {
+  const items: Record<string, any>[] = []
+  for (let i = 1; i <= count; i++) {
+    if (resource === "products") {
+      items.push({
+        id: i,
+        title: getRandomItem(PRODUCTS),
+        category: getRandomItem(CATEGORIES),
+        price: getRandomFloat(19, 999),
+        discountPercentage: getRandomFloat(5, 25),
+        rating: getRandomFloat(3.5, 5.0, 1),
+        stock: getRandomInt(5, 500),
+        brand: `${getRandomItem(LAST_NAMES)} Tech`,
+      })
+    } else if (resource === "carts") {
+      items.push({
+        id: i,
+        userId: getRandomInt(1, 50),
+        totalProducts: getRandomInt(1, 5),
+        totalQuantity: getRandomInt(1, 10),
+        total: getRandomFloat(50, 2500),
+        discountedTotal: getRandomFloat(40, 2200),
+      })
+    } else if (resource === "recipes") {
+      items.push({
+        id: i,
+        name: `Artisanal Dish #${i}`,
+        prepTimeMinutes: getRandomInt(10, 45),
+        cookTimeMinutes: getRandomInt(15, 60),
+        servings: getRandomInt(2, 8),
+        difficulty: getRandomItem(["Easy", "Medium", "Hard"]),
+        cuisine: getRandomItem(["Italian", "Asian", "Mexican", "Mediterranean", "American"]),
+        caloriesPerServing: getRandomInt(200, 800),
+      })
+    } else {
+      items.push({
+        id: i,
+        title: `Enterprise Architectural Analysis #${i}`,
+        body: `Optimized database clustering and high throughput stream processing guidelines for modern data engineering teams.`,
+        userId: getRandomInt(1, 20),
+        views: getRandomInt(100, 15000),
+      })
+    }
+  }
+  return items
+}
+
+function generateRandomUserFallback(count: number): Record<string, any>[] {
+  const users: Record<string, any>[] = []
+  for (let i = 0; i < count; i++) {
+    const first = getRandomItem(FIRST_NAMES)
+    const last = getRandomItem(LAST_NAMES)
+    const city = getRandomItem(CITIES)
+    const country = getRandomItem(COUNTRIES_LIST)
+    users.push({
+      user_id: 1000 + i + 1,
+      first_name: first,
+      last_name: last,
+      gender: Math.random() > 0.5 ? "female" : "male",
+      email: `${first.toLowerCase()}.${last.toLowerCase()}@${getRandomItem(DOMAINS)}`,
+      phone: `+1 (${getRandomInt(200, 999)}) ${getRandomInt(100, 999)}-${getRandomInt(1000, 9999)}`,
+      city: city,
+      state: "State",
+      country: country,
+      postcode: String(getRandomInt(10000, 99999)),
+      latitude: String(getRandomFloat(25, 48, 4)),
+      longitude: String(getRandomFloat(-120, -75, 4)),
+      registered_age: getRandomInt(1, 15),
+      nationality: "US",
+    })
+  }
+  return users
+}
+
 export default function TestDataGeneratorPage() {
   const navigate = useNavigate()
   const [dataSource, setDataSource] = useState<DataSource>("local_generator")
@@ -126,7 +202,10 @@ export default function TestDataGeneratorPage() {
         })
         .catch((err) => {
           if (err.name !== "AbortError") {
-            setApiError(err instanceof Error ? err.message : "Failed to fetch DummyJSON data")
+            const fallback = generateDummyJsonFallback(dummyResource, Math.min(rowCount, 100))
+            setRemoteRecords(fallback)
+            setTableName(`dummyjson_${dummyResource}_offline`)
+            setApiError(`Remote provider notice: ${err instanceof Error ? err.message : "Network error"}. Instant local synthetic dataset generated.`)
             setLoadingRemote(false)
           }
         })
@@ -160,7 +239,10 @@ export default function TestDataGeneratorPage() {
         })
         .catch((err) => {
           if (err.name !== "AbortError") {
-            setApiError(err instanceof Error ? err.message : "Failed to fetch RandomUser data")
+            const fallback = generateRandomUserFallback(Math.min(rowCount, 100))
+            setRemoteRecords(fallback)
+            setTableName("randomuser_demographics_offline")
+            setApiError(`Remote provider notice: ${err instanceof Error ? err.message : "Network error"}. Instant local demographic dataset generated.`)
             setLoadingRemote(false)
           }
         })
@@ -276,30 +358,17 @@ export default function TestDataGeneratorPage() {
     return Object.keys(activeRecords[0])
   }, [activeRecords])
 
-  // Format conversions
-  const jsonOutput = useMemo(() => {
+  // On-demand format conversions (lazy computation to prevent 30MB+ heap spikes)
+  const getJsonOutput = useCallback(() => {
     return JSON.stringify(activeRecords, null, 2)
   }, [activeRecords])
 
-  const csvOutput = useMemo(() => {
+  const getCsvOutput = useCallback(() => {
     if (activeRecords.length === 0) return ""
-    const headers = Object.keys(activeRecords[0]).map(h => {
-      const needsQuotes = h.includes(",") || h.includes('"') || h.includes("\n")
-      return needsQuotes ? `"${h.replace(/"/g, '""')}"` : h
-    }).join(",")
-    const rows = activeRecords.map((row) =>
-      Object.values(row)
-        .map((val) => {
-          const str = String(val ?? "")
-          const needsQuotes = str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")
-          return needsQuotes ? `"${str.replace(/"/g, '""')}"` : str
-        })
-        .join(",")
-    )
-    return [headers, ...rows].join("\n")
+    return serializeToCsv(Object.keys(activeRecords[0]), activeRecords)
   }, [activeRecords])
 
-  const sqlOutput = useMemo(() => {
+  const getSqlOutput = useCallback(() => {
     if (activeRecords.length === 0) return ""
     const firstRow = activeRecords[0]
     const cols = Object.keys(firstRow)
@@ -314,18 +383,20 @@ export default function TestDataGeneratorPage() {
       }
     })
 
+    const safeTable = tableName.trim().replace(/[^a-zA-Z0-9_]/g, "_") || "synthetic_test_data"
+
     let sql = `-- ==========================================================================\n`
-    sql += `-- Dataset: ${tableName.toUpperCase()} (${activeRecords.length} Rows)\n`
+    sql += `-- Dataset: ${safeTable.toUpperCase()} (${activeRecords.length} Rows)\n`
     sql += `-- Source : ${dataSource.toUpperCase()}\n`
     sql += `-- Generated on: ${new Date().toISOString()}\n`
     sql += `-- ==========================================================================\n\n`
-    sql += `DROP TABLE IF EXISTS ${tableName};\n\n`
-    sql += `CREATE TABLE ${tableName} (\n`
-    sql += cols.map((col, idx) => `  ${col.padEnd(22)} ${typeMapping[col]}${idx === 0 ? " PRIMARY KEY" : ""}`).join(",\n")
+    sql += `DROP TABLE IF EXISTS "${safeTable}";\n\n`
+    sql += `CREATE TABLE "${safeTable}" (\n`
+    sql += cols.map((col, idx) => `  "${col.replace(/"/g, '""')}"`.padEnd(24) + ` ${typeMapping[col]}${idx === 0 ? " PRIMARY KEY" : ""}`).join(",\n")
     sql += `\n);\n\n`
 
     sql += `-- Insert Data Batch (${activeRecords.length} rows)\n`
-    sql += `INSERT INTO ${tableName} (${cols.join(", ")})\nVALUES\n`
+    sql += `INSERT INTO "${safeTable}" (${cols.map((c) => `"${c.replace(/"/g, '""')}"`).join(", ")})\nVALUES\n`
     const valueTuples = activeRecords.map((row) => {
       const vals = cols.map((col) => {
         const val = row[col]
@@ -337,24 +408,33 @@ export default function TestDataGeneratorPage() {
     })
 
     sql += valueTuples.join(",\n") + `;\n\n`
-    sql += `-- Verification Query\nSELECT * FROM ${tableName} LIMIT 10;\n`
+    sql += `-- Verification Query\nSELECT * FROM "${safeTable}" LIMIT 10;\n`
 
     return sql
   }, [activeRecords, tableName, dataSource])
 
+  // Compute text output only for the actively inspected format
+  const activeFormattedOutput = useMemo(() => {
+    if (outputFormat === "json") return getJsonOutput()
+    if (outputFormat === "sql") return getSqlOutput()
+    if (outputFormat === "csv") return getCsvOutput()
+    return ""
+  }, [outputFormat, getJsonOutput, getSqlOutput, getCsvOutput])
+
   const handleDownload = (format: "csv" | "json" | "sql") => {
     let content = ""
     let mime = "text/plain"
-    let filename = `${tableName}.${format}`
+    const safeFilename = tableName.trim().replace(/[^a-zA-Z0-9_]/g, "_") || "synthetic_data"
+    const filename = `${safeFilename}.${format}`
 
     if (format === "csv") {
-      content = csvOutput
+      content = getCsvOutput()
       mime = "text/csv"
     } else if (format === "json") {
-      content = jsonOutput
+      content = getJsonOutput()
       mime = "application/json"
     } else if (format === "sql") {
-      content = sqlOutput
+      content = getSqlOutput()
       mime = "application/sql"
     }
 
@@ -370,7 +450,7 @@ export default function TestDataGeneratorPage() {
   }
 
   const handleCopy = () => {
-    const text = outputFormat === "json" ? jsonOutput : outputFormat === "sql" ? sqlOutput : csvOutput
+    const text = activeFormattedOutput || getCsvOutput()
     navigator.clipboard.writeText(text).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -732,21 +812,63 @@ export default function TestDataGeneratorPage() {
         {/* View 2: SQL Editor */}
         {outputFormat === "sql" && (
           <div className="border border-white/15 rounded-xl overflow-hidden bg-[#0a0a0a]">
-            <Editor height="500px" defaultLanguage="sql" theme="vs-dark" value={sqlOutput} options={{ readOnly: true }} />
+            <Editor
+              height="500px"
+              defaultLanguage="sql"
+              theme="vs-dark"
+              value={activeFormattedOutput}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 13,
+                renderLineHighlight: "none",
+                folding: false,
+                wordWrap: "on",
+              }}
+            />
           </div>
         )}
 
         {/* View 3: JSON Editor */}
         {outputFormat === "json" && (
           <div className="border border-white/15 rounded-xl overflow-hidden bg-[#0a0a0a]">
-            <Editor height="500px" defaultLanguage="json" theme="vs-dark" value={jsonOutput} options={{ readOnly: true }} />
+            <Editor
+              height="500px"
+              defaultLanguage="json"
+              theme="vs-dark"
+              value={activeFormattedOutput}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 13,
+                renderLineHighlight: "none",
+                folding: false,
+                wordWrap: "on",
+              }}
+            />
           </div>
         )}
 
         {/* View 4: CSV Editor */}
         {outputFormat === "csv" && (
           <div className="border border-white/15 rounded-xl overflow-hidden bg-[#0a0a0a]">
-            <Editor height="500px" defaultLanguage="plaintext" theme="vs-dark" value={csvOutput} options={{ readOnly: true }} />
+            <Editor
+              height="500px"
+              defaultLanguage="plaintext"
+              theme="vs-dark"
+              value={activeFormattedOutput}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 13,
+                renderLineHighlight: "none",
+                folding: false,
+                wordWrap: "on",
+              }}
+            />
           </div>
         )}
       </div>

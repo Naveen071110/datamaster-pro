@@ -95,7 +95,19 @@ export default function Db2SasDdlPage() {
           </CardHeader>
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-              <Editor height="380px" defaultLanguage="sql" theme="vs-dark" value={db2ParamQuery} onChange={(v) => setDb2ParamQuery(v || "")} />
+              <Editor
+                height="380px"
+                defaultLanguage="sql"
+                theme="vs-dark"
+                value={db2ParamQuery}
+                onChange={(v) => setDb2ParamQuery(v || "")}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  wordWrap: "on",
+                }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -108,7 +120,19 @@ export default function Db2SasDdlPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-              <Editor height="290px" defaultLanguage="plaintext" theme="vs-dark" value={db2ParamFile} onChange={(v) => setDb2ParamFile(v || "")} />
+              <Editor
+                height="290px"
+                defaultLanguage="plaintext"
+                theme="vs-dark"
+                value={db2ParamFile}
+                onChange={(v) => setDb2ParamFile(v || "")}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  wordWrap: "on",
+                }}
+              />
             </div>
 
             {resolvedParamData.uniqueFoundParams && (
@@ -167,7 +191,21 @@ export default function Db2SasDdlPage() {
           </CardHeader>
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-              <Editor height="380px" defaultLanguage="sql" theme="vs-dark" value={resolvedParamData.resolvedSql} options={{ readOnly: true }} />
+              <Editor
+                height="380px"
+                defaultLanguage="sql"
+                theme="vs-dark"
+                value={resolvedParamData.resolvedSql}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  renderLineHighlight: "none",
+                  folding: false,
+                  wordWrap: "on",
+                }}
+              />
             </div>
           </CardContent>
         </Card>

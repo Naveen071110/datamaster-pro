@@ -1,4 +1,5 @@
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
+import { parseCsvLine } from '@/shared/utils/csv'
 
 let SQL: any = null
 let db: any = null
@@ -197,10 +198,13 @@ const LOGS_DATA = [
 function insertData(db: any, table: string, columns: string[], data: any[][]) {
   const placeholders = columns.map(() => '?').join(', ')
   const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`)
-  for (const row of data) {
-    stmt.run(row)
+  try {
+    for (const row of data) {
+      stmt.run(row)
+    }
+  } finally {
+    stmt.free()
   }
-  stmt.free()
 }
 
 export async function getDatabase(): Promise<any> {
@@ -329,13 +333,16 @@ export function executeQuery(db: any, sql: string): { columns: string[]; rows: R
     upper.startsWith("VALUES")
   ) {
     const stmt = db.prepare(sql)
-    const columns = stmt.getColumnNames()
-    const rows: Record<string, unknown>[] = []
-    while (stmt.step()) {
-      rows.push(stmt.getAsObject())
+    try {
+      const columns = stmt.getColumnNames()
+      const rows: Record<string, unknown>[] = []
+      while (stmt.step()) {
+        rows.push(stmt.getAsObject())
+      }
+      return { columns, rows, rowCount: rows.length }
+    } finally {
+      stmt.free()
     }
-    stmt.free()
-    return { columns, rows, rowCount: rows.length }
   } else {
     db.run(sql)
     const affectedRows = db.getRowsModified()
@@ -363,31 +370,6 @@ export function getSchema(db: any): { tableName: string; columns: { name: string
   return schema
 }
 
-function parseCsvTokens(line: string): string[] {
-  const result: string[] = []
-  let current = ""
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"'
-        i++
-      } else {
-        inQuotes = !inQuotes
-      }
-    } else if (char === "," && !inQuotes) {
-      result.push(current.trim())
-      current = ""
-    } else {
-      current += char
-    }
-  }
-  result.push(current.trim())
-  return result
-}
-
 export function createTableFromCsv(db: any, rawTableName: string, csvContent: string): { tableName: string; columnCount: number; rowCount: number } {
   const lines = csvContent.trim().split("\n").map((l) => l.trim()).filter(Boolean)
   if (lines.length === 0) throw new Error("CSV file is empty")
@@ -395,7 +377,7 @@ export function createTableFromCsv(db: any, rawTableName: string, csvContent: st
   let tableName = rawTableName.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "user_upload"
   if (/^[0-9]/.test(tableName)) tableName = "tbl_" + tableName
 
-  const rawHeaders = parseCsvTokens(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
+  const rawHeaders = parseCsvLine(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
   const cleanHeaders = rawHeaders.map((h, i) => {
     let clean = h.toLowerCase().replace(/[^a-z0-9_]/g, "_")
     if (!clean || /^[0-9]/.test(clean)) clean = `col_${i + 1}_${clean}`
@@ -407,28 +389,43 @@ export function createTableFromCsv(db: any, rawTableName: string, csvContent: st
   const ddl = `CREATE TABLE "${tableName}" (${cleanHeaders.map((h) => `"${h}" TEXT`).join(", ")});`
   db.run(ddl)
 
-  // Insert rows
+  // Insert rows inside a single atomic SQLite transaction for high throughput and safety
   const placeholders = cleanHeaders.map(() => "?").join(", ")
   const stmt = db.prepare(`INSERT INTO "${tableName}" VALUES (${placeholders});`)
 
   let count = 0
-  for (let i = 1; i < lines.length; i++) {
-    const rawVals = parseCsvTokens(lines[i]).map((v) => v.replace(/^["']|["']$/g, "").trim())
-    // Pad or trim values to match cleanHeaders length
-    const vals: string[] = cleanHeaders.map((_, idx) => (idx < rawVals.length ? rawVals[idx] : ""))
-    stmt.run(vals)
-    count++
+  try {
+    db.run("BEGIN TRANSACTION;")
+    for (let i = 1; i < lines.length; i++) {
+      const rawVals = parseCsvLine(lines[i]).map((v) => v.replace(/^["']|["']$/g, "").trim())
+      const vals: string[] = cleanHeaders.map((_, idx) => (idx < rawVals.length ? rawVals[idx] : ""))
+      stmt.run(vals)
+      count++
+    }
+    db.run("COMMIT;")
+  } catch (err) {
+    try {
+      db.run("ROLLBACK;")
+    } catch {
+      // Ignore rollback failure
+    }
+    throw err
+  } finally {
+    stmt.free()
   }
-  stmt.free()
 
   return { tableName, columnCount: cleanHeaders.length, rowCount: count }
 }
 
 export function disposeDatabase() {
-  if (db) {
-    db.close()
-    db = null
-    SQL = null
+  if (db && typeof db.close === "function") {
+    try {
+      db.close()
+    } catch (e) {
+      console.warn("Error closing SQL database:", e)
+    }
   }
+  db = null
+  SQL = null
   initPromise = null
 }

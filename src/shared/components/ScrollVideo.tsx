@@ -33,28 +33,20 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
     video.setAttribute("x-webkit-airplay", "deny")
     video.preload = "auto"
 
-    let animationFrameId: number
+    let animationFrameId: number | null = null
     let targetProgress = 0
     let smoothedProgress = 0
     let lastSeekTime = 0
     let isMounted = true
-
-    // Calculate scroll progress (0 to 1)
-    const handleScroll = () => {
-      const scrollElement = document.scrollingElement || document.documentElement
-      const maxScroll = scrollElement.scrollHeight - window.innerHeight
-      if (maxScroll > 0) {
-        targetProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1)
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    window.addEventListener("resize", handleScroll, { passive: true })
-    handleScroll()
+    let isRendering = false
+    let hasPrimed = false
 
     // Smooth scrub loop (syncs video.currentTime to page scroll position)
     const render = () => {
-      if (!isMounted) return
+      if (!isMounted) {
+        isRendering = false
+        return
+      }
 
       // Exponential lerp (0.12 factor gives quick, fluid scroll response)
       const delta = targetProgress - smoothedProgress
@@ -66,19 +58,44 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
         const now = performance.now()
 
         // Seek threshold: seek only if delta > 0.03s, not currently seeking, and at least 32ms between seeks
-        // This gives hardware video decoders ~30 FPS decode window = zero lag, ultra-fluid frame scrubbing
         if (!video.seeking && Math.abs(video.currentTime - targetTime) > 0.03 && now - lastSeekTime > 32) {
           video.currentTime = Math.max(0, Math.min(targetTime, video.duration - 0.05))
           lastSeekTime = now
         }
       }
 
+      // Only continue rAF loop while settling; halt when at rest to conserve GPU/CPU
+      if (Math.abs(delta) > 0.0005) {
+        animationFrameId = requestAnimationFrame(render)
+      } else {
+        isRendering = false
+      }
+    }
+
+    const startRendering = () => {
+      if (isRendering || !isMounted) return
+      isRendering = true
       animationFrameId = requestAnimationFrame(render)
     }
 
+    // Calculate scroll progress (0 to 1)
+    const handleScroll = () => {
+      const scrollElement = document.scrollingElement || document.documentElement
+      const maxScroll = scrollElement.scrollHeight - window.innerHeight
+      if (maxScroll > 0) {
+        targetProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1)
+      }
+      startRendering()
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    window.addEventListener("resize", handleScroll, { passive: true })
+    handleScroll()
+
     // Prime the video decoder with a brief play-pause sequence
     const primeDecoder = () => {
-      if (!isMounted) return
+      if (!isMounted || hasPrimed) return
+      hasPrimed = true
       setIsReady(true)
 
       // Play briefly then pause so the decoder prepares keyframes in GPU memory
@@ -89,7 +106,7 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
             if (isMounted) {
               video.pause()
               handleScroll()
-              render()
+              startRendering()
             }
           }, 60)
         })
@@ -97,7 +114,7 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
           // Autoplay blocked — still works via manual scroll scrubbing
           if (isMounted) {
             handleScroll()
-            render()
+            startRendering()
           }
         })
     }
@@ -117,7 +134,16 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
       window.removeEventListener("resize", handleScroll)
       video.removeEventListener("loadeddata", primeDecoder)
       video.removeEventListener("canplaythrough", primeDecoder)
-      cancelAnimationFrame(animationFrameId)
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId)
+      }
+      try {
+        video.pause()
+        video.removeAttribute("src")
+        video.load()
+      } catch {
+        // Safe disposal
+      }
     }
   }, [videoUrl])
 

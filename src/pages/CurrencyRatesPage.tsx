@@ -69,6 +69,19 @@ const CURRENCY_NAMES: Record<string, string> = {
   SAR: "Saudi Riyal",
 }
 
+// Compute mathematically correct baseline cross-rates when offline or air-gapped
+const getNormalizedFallbackRates = (base: string): Record<string, number> => {
+  const allUsdRates: Record<string, number> = { USD: 1.0, ...FALLBACK_RATES }
+  const baseRateToUsd = allUsdRates[base] || 1.0
+  const normalized: Record<string, number> = {}
+  Object.keys(CURRENCY_NAMES).forEach((code) => {
+    const targetRateToUsd = allUsdRates[code] || 1.0
+    normalized[code] = parseFloat((targetRateToUsd / baseRateToUsd).toFixed(6))
+  })
+  normalized[base] = 1.0
+  return normalized
+}
+
 export default function CurrencyRatesPage() {
   const navigate = useNavigate()
   const [baseCurrency, setBaseCurrency] = useState("USD")
@@ -86,70 +99,97 @@ export default function CurrencyRatesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState<"converter" | "sql" | "table">("converter")
   const [copied, setCopied] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  // Fetch Live Rates on Mount or when Base changes
-  const fetchLiveRates = async (base: string) => {
-    setLoading(true)
-    try {
-      // Primary Endpoint: Frankfurter API (ECB Live Rates)
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${base}`)
-      if (res.ok) {
-        const data = await res.json()
-        setRatesData({
-          base: data.base,
-          date: data.date,
-          rates: { ...data.rates, [base]: 1.0 },
-        })
-        setIsLive(true)
-        setLoading(false)
-        return
-      }
-    } catch (err) {
-      console.warn("Frankfurter API unreachable, trying fallback CDN...")
-    }
-
-    try {
-      // Secondary Fallback: jsDelivr Currency CDN
-      const res2 = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${base.toLowerCase()}.json`)
-      if (res2.ok) {
-        const data2 = await res2.json()
-        const baseKey = base.toLowerCase()
-        const rawRates = data2[baseKey] || {}
-        const normalizedRates: Record<string, number> = {}
-
-        Object.keys(CURRENCY_NAMES).forEach((code) => {
-          const lower = code.toLowerCase()
-          if (rawRates[lower]) {
-            normalizedRates[code] = rawRates[lower]
-          }
-        })
-
-        setRatesData({
-          base: base,
-          date: data2.date || new Date().toISOString().split("T")[0],
-          rates: normalizedRates,
-        })
-        setIsLive(true)
-        setLoading(false)
-        return
-      }
-    } catch (err) {
-      console.warn("CDN fallback unreachable, using verified baseline rates.")
-    }
-
-    // Baseline Fallback
-    setRatesData({
-      base: base,
-      date: new Date().toISOString().split("T")[0],
-      rates: FALLBACK_RATES,
-    })
-    setIsLive(false)
-    setLoading(false)
-  }
-
+  // Fetch Live Rates on Mount or when Base changes, guarded against race conditions & network stalls
   useEffect(() => {
-    fetchLiveRates(baseCurrency)
-  }, [baseCurrency])
+    const controller = new AbortController()
+    let isCancelled = false
+
+    const fetchRates = async () => {
+      setLoading(true)
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+
+      try {
+        // Primary Endpoint: Frankfurter API (ECB Live Rates)
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${baseCurrency}`, {
+          signal: controller.signal,
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (!isCancelled) {
+            clearTimeout(timeoutId)
+            setRatesData({
+              base: data.base,
+              date: data.date,
+              rates: { ...data.rates, [baseCurrency]: 1.0 },
+            })
+            setIsLive(true)
+            setLoading(false)
+            return
+          }
+        }
+      } catch (err: any) {
+        if (err.name === "AbortError" && isCancelled) return
+        console.warn("Frankfurter API unreachable, trying fallback CDN...")
+      }
+
+      try {
+        // Secondary Fallback: jsDelivr Currency CDN
+        const res2 = await fetch(
+          `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${baseCurrency.toLowerCase()}.json`,
+          { signal: controller.signal }
+        )
+        if (res2.ok) {
+          const data2 = await res2.json()
+          if (!isCancelled) {
+            clearTimeout(timeoutId)
+            const baseKey = baseCurrency.toLowerCase()
+            const rawRates = data2[baseKey] || {}
+            const normalizedRates: Record<string, number> = {}
+
+            Object.keys(CURRENCY_NAMES).forEach((code) => {
+              const lower = code.toLowerCase()
+              if (rawRates[lower]) {
+                normalizedRates[code] = rawRates[lower]
+              }
+            })
+            normalizedRates[baseCurrency] = 1.0
+
+            setRatesData({
+              base: baseCurrency,
+              date: data2.date || new Date().toISOString().split("T")[0],
+              rates: normalizedRates,
+            })
+            setIsLive(true)
+            setLoading(false)
+            return
+          }
+        }
+      } catch (err: any) {
+        if (err.name === "AbortError" && isCancelled) return
+        console.warn("CDN fallback unreachable, using verified baseline rates.")
+      }
+
+      if (!isCancelled) {
+        clearTimeout(timeoutId)
+        setRatesData({
+          base: baseCurrency,
+          date: new Date().toISOString().split("T")[0],
+          rates: getNormalizedFallbackRates(baseCurrency),
+        })
+        setIsLive(false)
+        setLoading(false)
+      }
+    }
+
+    fetchRates()
+
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [baseCurrency, refreshKey])
 
   // Conversion Calculation
   const convertedAmount = useMemo(() => {
@@ -248,7 +288,7 @@ export default function CurrencyRatesPage() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => fetchLiveRates(baseCurrency)}
+            onClick={() => setRefreshKey((k) => k + 1)}
             disabled={loading}
             className="border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs gap-1.5"
           >
@@ -411,7 +451,21 @@ export default function CurrencyRatesPage() {
           </CardHeader>
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-              <Editor height="450px" defaultLanguage="sql" theme="vs-dark" value={sqlDimensionOutput} options={{ readOnly: true }} />
+              <Editor
+                height="450px"
+                defaultLanguage="sql"
+                theme="vs-dark"
+                value={sqlDimensionOutput}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  renderLineHighlight: "none",
+                  folding: false,
+                  wordWrap: "on",
+                }}
+              />
             </div>
           </CardContent>
         </Card>

@@ -210,8 +210,13 @@ export const useAppStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         bookmarks: state.bookmarks,
-        queryTabs: state.queryTabs.map((t) => ({ ...t, isExecuting: false })),
-        queryHistory: state.queryHistory,
+        queryTabs: state.queryTabs.map((t) => ({
+          id: t.id,
+          name: t.name,
+          sql: t.sql,
+          isExecuting: false,
+        })),
+        queryHistory: state.queryHistory.slice(0, 30),
         activeTabId: state.activeTabId,
         sidebarOpen: state.sidebarOpen,
         theme: state.theme,
@@ -220,7 +225,12 @@ export const useAppStore = create<AppStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state && Array.isArray(state.queryTabs)) {
-          state.queryTabs = state.queryTabs.map((t) => ({ ...t, isExecuting: false }))
+          state.queryTabs = state.queryTabs.map((t) => ({
+            ...t,
+            isExecuting: false,
+            result: undefined,
+            error: undefined,
+          }))
         }
       },
     }

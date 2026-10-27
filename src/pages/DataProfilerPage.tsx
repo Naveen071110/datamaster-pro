@@ -1,31 +1,7 @@
 import { useState, useMemo } from "react"
 import { Upload, AlertTriangle, CheckCircle2, Database, Table } from "lucide-react"
-
-// Quote-aware CSV line parser
-function parseCsvLine(line: string): string[] {
-  const result: string[] = []
-  let current = ""
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"'
-        i++
-      } else {
-        inQuotes = !inQuotes
-      }
-    } else if (char === "," && !inQuotes) {
-      result.push(current.trim())
-      current = ""
-    } else {
-      current += char
-    }
-  }
-  result.push(current.trim())
-  return result
-}
+import { parseCsvLine } from "@/shared/utils/csv"
+import { useDebounce } from "@/shared/hooks/useDebounce"
 
 const SAMPLE_PROFILER_CSV = `transaction_id,customer_id,amount,payment_method,status,created_at,note
 TX1001,CUST_881,149.99,credit_card,COMPLETED,2024-01-10 14:22:00,Standard order
@@ -53,10 +29,11 @@ interface ColumnProfile {
 
 export default function DataProfilerPage() {
   const [csvContent, setCsvContent] = useState(SAMPLE_PROFILER_CSV)
+  const debouncedCsvContent = useDebounce(csvContent, 200)
 
   // Compute Data Profile
   const profileResult = useMemo(() => {
-    const lines = csvContent.trim().split("\n").map((l) => l.trim()).filter(Boolean)
+    const lines = debouncedCsvContent.trim().split("\n").map((l) => l.trim()).filter(Boolean)
     if (lines.length === 0) return null
 
     const headers = parseCsvLine(lines[0]).map((h) => h.replace(/^["']|["']$/g, "").trim())
@@ -174,7 +151,7 @@ export default function DataProfilerPage() {
     const overallHealthScore = Math.max(0, Math.round(100 - (totalNullCells / (totalRows * totalCols || 1)) * 50))
 
     return { totalRows, totalCols, columnProfiles, globalWarnings, overallHealthScore }
-  }, [csvContent])
+  }, [debouncedCsvContent])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

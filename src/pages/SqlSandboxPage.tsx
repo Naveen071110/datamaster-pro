@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from "react"
 import { Play, RotateCcw, Database, History, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
+import { serializeToCsv } from "@/shared/utils/csv"
 import { ErrorState } from "@/shared/components/ErrorState"
 import { EmptyState } from "@/shared/components/EmptyState"
 import { QueryEditor } from "@/features/sql-sandbox/components/QueryEditor"
@@ -10,12 +11,21 @@ import { SchemaExplorer } from "@/features/sql-sandbox/components/SchemaExplorer
 import { useAppStore } from "@/stores"
 
 export default function SqlSandboxPage() {
-  const {
-    queryTabs, activeTabId, queryHistory,
-    addTab, closeTab, setActiveTab, updateTabSql,
-    setTabResult, setTabError, setTabExecuting, setTabExecutionTime,
-    addToHistory, clearResults, setDatabaseReady, setDatabaseError,
-  } = useAppStore()
+  const queryTabs = useAppStore((s) => s.queryTabs)
+  const activeTabId = useAppStore((s) => s.activeTabId)
+  const queryHistory = useAppStore((s) => s.queryHistory)
+  const addTab = useAppStore((s) => s.addTab)
+  const closeTab = useAppStore((s) => s.closeTab)
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const updateTabSql = useAppStore((s) => s.updateTabSql)
+  const setTabResult = useAppStore((s) => s.setTabResult)
+  const setTabError = useAppStore((s) => s.setTabError)
+  const setTabExecuting = useAppStore((s) => s.setTabExecuting)
+  const setTabExecutionTime = useAppStore((s) => s.setTabExecutionTime)
+  const addToHistory = useAppStore((s) => s.addToHistory)
+  const clearResults = useAppStore((s) => s.clearResults)
+  const setDatabaseReady = useAppStore((s) => s.setDatabaseReady)
+  const setDatabaseError = useAppStore((s) => s.setDatabaseError)
 
   const [db, setDb] = useState<any>(null)
   const [schema, setSchema] = useState<{ tableName: string; columns: { name: string; type: string }[] }[]>([])
@@ -23,6 +33,7 @@ export default function SqlSandboxPage() {
   const [initError, setInitError] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(false)
   const initialized = useRef(false)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Initialize SQL.js
   useEffect(() => {
@@ -56,7 +67,25 @@ export default function SqlSandboxPage() {
 
   const activeTab = queryTabs.find((t) => t.id === activeTabId)
 
+  // Debounced SQL update to avoid whole-page keystroke re-render cascades
+  const handleEditorChange = useCallback(
+    (tabId: string, val: string) => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = setTimeout(() => {
+        updateTabSql(tabId, val)
+      }, 150)
+    },
+    [updateTabSql]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [])
+
   const handleExecute = useCallback(async () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     if (!activeTab || !activeTab.sql.trim() || !db) return
 
     const startTime = performance.now()
@@ -240,7 +269,7 @@ export default function SqlSandboxPage() {
             <div className="flex-1 min-h-[150px]">
               <QueryEditor
                 value={activeTab.sql}
-                onChange={(val) => updateTabSql(activeTab.id, val)}
+                onChange={(val) => handleEditorChange(activeTab.id, val)}
                 onExecute={handleExecute}
                 height="100%"
               />
@@ -275,18 +304,16 @@ export default function SqlSandboxPage() {
                     onClick={() => {
                       if (!activeTab.result) return
                       const cols = activeTab.result.columns
-                      const csvRows = [cols.join(",")]
-                      activeTab.result.rows.forEach((r) => {
-                        const vals = cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`)
-                        csvRows.push(vals.join(","))
-                      })
-                      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" })
+                      const csvContent = serializeToCsv(cols, activeTab.result.rows)
+                      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
                       const url = URL.createObjectURL(blob)
                       const a = document.createElement("a")
                       a.href = url
                       a.download = "query_results.csv"
+                      document.body.appendChild(a)
                       a.click()
-                      URL.revokeObjectURL(url)
+                      document.body.removeChild(a)
+                      setTimeout(() => URL.revokeObjectURL(url), 1000)
                     }}
                   >
                     Export CSV
@@ -303,8 +330,10 @@ export default function SqlSandboxPage() {
                       const a = document.createElement("a")
                       a.href = url
                       a.download = "query_results.json"
+                      document.body.appendChild(a)
                       a.click()
-                      URL.revokeObjectURL(url)
+                      document.body.removeChild(a)
+                      setTimeout(() => URL.revokeObjectURL(url), 1000)
                     }}
                   >
                     Export JSON

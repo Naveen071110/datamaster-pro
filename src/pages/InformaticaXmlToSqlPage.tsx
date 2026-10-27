@@ -317,7 +317,7 @@ export default function InformaticaXmlToSqlPage() {
       if (paramMap[paramKey] !== undefined) {
         const val = paramMap[paramKey]
         const escapedKey = paramKey.replace(/\$/g, "\\$")
-        resolvedSql = resolvedSql.replace(new RegExp(escapedKey, "g"), val)
+        resolvedSql = resolvedSql.replace(new RegExp(escapedKey, "g"), () => val)
         replacedCount++
       }
     })
@@ -334,13 +334,16 @@ export default function InformaticaXmlToSqlPage() {
 
   const handleDownload = () => {
     const textToDownload = mode === "xml" ? parsedXmlData.sql : resolvedParamData.resolvedSql
-    const filename = mode === "xml" ? `${parsedXmlData.mappingName || "mapping"}_converted.sql` : "resolved_parameter_query.sql"
+    const safeMappingName = (parsedXmlData.mappingName || "mapping").replace(/[^a-zA-Z0-9_]/g, "_")
+    const filename = mode === "xml" ? `${safeMappingName}_converted.sql` : "resolved_parameter_query.sql"
     const blob = new Blob([textToDownload], { type: "application/sql" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
     a.download = filename
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
 
@@ -426,7 +429,19 @@ export default function InformaticaXmlToSqlPage() {
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="420px" defaultLanguage="xml" theme="vs-dark" value={xmlInput} onChange={(v) => setXmlInput(v || "")} />
+                <Editor
+                  height="420px"
+                  defaultLanguage="xml"
+                  theme="vs-dark"
+                  value={xmlInput}
+                  onChange={(v) => setXmlInput(v || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -462,7 +477,21 @@ export default function InformaticaXmlToSqlPage() {
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="420px" defaultLanguage="sql" theme="vs-dark" value={parsedXmlData.sql} options={{ readOnly: true }} />
+                <Editor
+                  height="420px"
+                  defaultLanguage="sql"
+                  theme="vs-dark"
+                  value={parsedXmlData.sql}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    renderLineHighlight: "none",
+                    folding: false,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -480,7 +509,19 @@ export default function InformaticaXmlToSqlPage() {
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="360px" defaultLanguage="sql" theme="vs-dark" value={paramQuery} onChange={(v) => setParamQuery(v || "")} />
+                <Editor
+                  height="360px"
+                  defaultLanguage="sql"
+                  theme="vs-dark"
+                  value={paramQuery}
+                  onChange={(v) => setParamQuery(v || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -493,7 +534,19 @@ export default function InformaticaXmlToSqlPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="280px" defaultLanguage="ini" theme="vs-dark" value={paramFileContent} onChange={(v) => setParamFileContent(v || "")} />
+                <Editor
+                  height="280px"
+                  defaultLanguage="ini"
+                  theme="vs-dark"
+                  value={paramFileContent}
+                  onChange={(v) => setParamFileContent(v || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
 
               {resolvedParamData.uniqueFoundParams && (
@@ -525,7 +578,21 @@ export default function InformaticaXmlToSqlPage() {
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="360px" defaultLanguage="sql" theme="vs-dark" value={resolvedParamData.resolvedSql} options={{ readOnly: true }} />
+                <Editor
+                  height="360px"
+                  defaultLanguage="sql"
+                  theme="vs-dark"
+                  value={resolvedParamData.resolvedSql}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    renderLineHighlight: "none",
+                    folding: false,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
             </CardContent>
           </Card>

@@ -1,11 +1,6 @@
-import { useRef, useCallback } from "react"
-import Editor, { loader } from "@monaco-editor/react"
+import { useRef, useCallback, memo } from "react"
+import Editor from "@monaco-editor/react"
 import { useTheme } from "@/shared/hooks/useTheme"
-
-// Configure Monaco to load from CDN (cached by browser)
-loader.config({
-  paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/dev/vs" },
-})
 
 interface QueryEditorProps {
   value: string
@@ -14,7 +9,12 @@ interface QueryEditorProps {
   height?: string
 }
 
-export function QueryEditor({ value, onChange, onExecute, height = "200px" }: QueryEditorProps) {
+export const QueryEditor = memo(function QueryEditor({
+  value,
+  onChange,
+  onExecute,
+  height = "200px",
+}: QueryEditorProps) {
   const { theme } = useTheme()
   const editorRef = useRef<any>(null)
 
@@ -58,4 +58,4 @@ export function QueryEditor({ value, onChange, onExecute, height = "200px" }: Qu
       />
     </div>
   )
-}
+})

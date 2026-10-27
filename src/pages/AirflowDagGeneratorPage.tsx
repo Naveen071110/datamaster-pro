@@ -100,6 +100,9 @@ export default function AirflowDagGeneratorPage() {
       return cleaned || "task"
     }
 
+    // Safe Python literal escaping
+    const escapePyStr = (str: string) => JSON.stringify(String(str ?? ""))
+
     // Collect all PythonOperator callables
     const pythonTasks = tasks.filter((t) => t.operator === "PythonOperator")
     const customCallables = Array.from(
@@ -112,9 +115,9 @@ export default function AirflowDagGeneratorPage() {
 
     let py = `"""\n`
     py += `Apache Airflow 2.x Python DAG\n`
-    py += `DAG ID      : ${dagId}\n`
-    py += `Description : ${description}\n`
-    py += `Schedule    : ${cronSchedule} (${cronDescription})\n`
+    py += `DAG ID      : ${dagId.replace(/[\r\n]/g, "")}\n`
+    py += `Description : ${description.replace(/[\r\n]/g, "")}\n`
+    py += `Schedule    : ${cronSchedule.replace(/[\r\n]/g, "")} (${cronDescription})\n`
     py += `Generated on: ${new Date().toISOString()}\n`
     py += `"""\n\n`
 
@@ -130,12 +133,12 @@ export default function AirflowDagGeneratorPage() {
     }
     py += `\n\n# Default Task Arguments\n`
     py += `default_args = {\n`
-    py += `    "owner": "${owner}",\n`
+    py += `    "owner": ${escapePyStr(owner)},\n`
     py += `    "depends_on_past": False,\n`
     py += `    "email_on_failure": True,\n`
     py += `    "email": ["data-alerts@enterprise.com"],\n`
-    py += `    "retries": ${retries},\n`
-    py += `    "retry_delay": timedelta(minutes=${retryDelayMinutes}),\n`
+    py += `    "retries": ${Number.isFinite(retries) ? retries : 2},\n`
+    py += `    "retry_delay": timedelta(minutes=${Number.isFinite(retryDelayMinutes) ? retryDelayMinutes : 5}),\n`
     py += `}\n\n`
 
     py += `# Custom Python Callables\n`
@@ -149,17 +152,17 @@ export default function AirflowDagGeneratorPage() {
         py += `def ${fnName}(**context):\n`
         py += `    execution_date = context.get("ds")\n`
         py += `    print(f"Executing ${fnName} for business date: {execution_date}")\n`
-        py += `    return {"status": "SUCCESS", "task": "${fnName}"}\n\n`
+        py += `    return {"status": "SUCCESS", "task": ${escapePyStr(fnName)}}\n\n`
       })
       py += `\n`
     }
 
     py += `# DAG Definition\n`
     py += `with DAG(\n`
-    py += `    dag_id="${dagId}",\n`
+    py += `    dag_id=${escapePyStr(dagId)},\n`
     py += `    default_args=default_args,\n`
-    py += `    description="${description}",\n`
-    py += `    schedule="${cronSchedule}",\n`
+    py += `    description=${escapePyStr(description)},\n`
+    py += `    schedule=${escapePyStr(cronSchedule)},\n`
     py += `    start_date=datetime(2026, 1, 1),\n`
     py += `    catchup=${catchup ? "True" : "False"},\n`
     py += `    max_active_runs=1,\n`
@@ -170,30 +173,32 @@ export default function AirflowDagGeneratorPage() {
       ...t,
       varName: sanitizeIdent(t.name),
       funcName: sanitizeIdent(t.commandOrFunc),
+      safeTaskId: escapePyStr(t.name),
+      safeCommand: escapePyStr(t.commandOrFunc),
     }))
 
     sanitizedTasks.forEach((t) => {
       py += `    ${t.varName} = `
       if (t.operator === "PythonOperator") {
         py += `PythonOperator(\n`
-        py += `        task_id="${t.name}",\n`
+        py += `        task_id=${t.safeTaskId},\n`
         py += `        python_callable=${t.funcName},\n`
         py += `    )\n\n`
       } else if (t.operator === "BashOperator") {
         py += `BashOperator(\n`
-        py += `        task_id="${t.name}",\n`
-        py += `        bash_command="${t.commandOrFunc.replace(/"/g, '\\"')}",\n`
+        py += `        task_id=${t.safeTaskId},\n`
+        py += `        bash_command=${t.safeCommand},\n`
         py += `    )\n\n`
       } else if (t.operator === "SnowflakeOperator") {
         py += `SnowflakeOperator(\n`
-        py += `        task_id="${t.name}",\n`
+        py += `        task_id=${t.safeTaskId},\n`
         py += `        snowflake_conn_id="snowflake_default",\n`
-        py += `        sql="""${t.commandOrFunc}""",\n`
+        py += `        sql=${t.safeCommand},\n`
         py += `    )\n\n`
       } else {
         py += `BashOperator(\n`
-        py += `        task_id="${t.name}",\n`
-        py += `        bash_command="${t.commandOrFunc.replace(/"/g, '\\"')}",\n`
+        py += `        task_id=${t.safeTaskId},\n`
+        py += `        bash_command=${t.safeCommand},\n`
         py += `    )\n\n`
       }
     })
@@ -217,9 +222,11 @@ export default function AirflowDagGeneratorPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `dag_${dagId}.py`
+    a.download = `dag_${dagId.replace(/[^a-zA-Z0-9_-]/g, "_") || "pipeline"}.py`
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
@@ -427,7 +434,21 @@ export default function AirflowDagGeneratorPage() {
           </CardHeader>
           <CardContent>
             <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-              <Editor height="520px" defaultLanguage="python" theme="vs-dark" value={generatedPythonDag} options={{ readOnly: true }} />
+              <Editor
+                height="520px"
+                defaultLanguage="python"
+                theme="vs-dark"
+                value={generatedPythonDag}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  renderLineHighlight: "none",
+                  folding: false,
+                  wordWrap: "on",
+                }}
+              />
             </div>
           </CardContent>
         </Card>

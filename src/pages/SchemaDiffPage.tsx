@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { GitCompare, Copy, Check, ArrowRight, PlusCircle, MinusCircle, RefreshCw } from "lucide-react"
+import { GitCompare, Copy, Check, ArrowRight, PlusCircle, MinusCircle, RefreshCw, Download } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
@@ -89,20 +89,22 @@ export default function SchemaDiffPage() {
     const tableMatch = schemaA.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_.]+)/i) ||
                        schemaB.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_.]+)/i)
     const effectiveTableName = tableName.trim() || (tableMatch ? tableMatch[1].replace(/['"`]/g, "") : "target_table")
+    const safeTable = `"${effectiveTableName.replace(/"/g, '""')}"`
+    const quoteCol = (name: string) => `"${name.replace(/"/g, '""')}"`
 
     // Generate ALTER TABLE Statements
-    let alterSql = `-- Migration SQL to upgrade Source -> Target (Table: ${effectiveTableName})\n`
+    let alterSql = `-- Migration SQL to upgrade Source -> Target (Table: ${effectiveTableName.replace(/[\r\n]/g, "")})\n`
     if (added.length === 0 && removed.length === 0 && modified.length === 0) {
       alterSql += `-- Schemas are identical. No migrations required.\n`
     } else {
       added.forEach((col) => {
-        alterSql += `ALTER TABLE ${effectiveTableName} ADD COLUMN ${col.name} ${col.type};\n`
+        alterSql += `ALTER TABLE ${safeTable} ADD COLUMN ${quoteCol(col.name)} ${col.type};\n`
       })
       modified.forEach((mod) => {
-        alterSql += `ALTER TABLE ${effectiveTableName} ALTER COLUMN ${mod.name} TYPE ${mod.newType};\n`
+        alterSql += `ALTER TABLE ${safeTable} ALTER COLUMN ${quoteCol(mod.name)} TYPE ${mod.newType};\n`
       })
       removed.forEach((col) => {
-        alterSql += `-- WARNING: Destructive Action\nALTER TABLE ${effectiveTableName} DROP COLUMN ${col.name};\n`
+        alterSql += `-- WARNING: Destructive Action\nALTER TABLE ${safeTable} DROP COLUMN ${quoteCol(col.name)};\n`
       })
     }
 
@@ -113,6 +115,19 @@ export default function SchemaDiffPage() {
     navigator.clipboard.writeText(diffResult.alterSql).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    const blob = new Blob([diffResult.alterSql], { type: "application/sql" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    const safeFilename = tableName.trim().replace(/[^a-zA-Z0-9_]/g, "_") || "migration"
+    a.download = `migration_${safeFilename}.sql`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -241,13 +256,22 @@ export default function SchemaDiffPage() {
         <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md p-5 space-y-4 shadow-xl">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 className="text-base font-semibold text-white">Migration DDL Script</h2>
-            <button
-              onClick={handleCopy}
-              className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copied ? "Copied" : "Copy Migration SQL"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDownload}
+                className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 inline-flex items-center gap-1.5 transition-colors"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download .sql</span>
+              </button>
+              <button
+                onClick={handleCopy}
+                className="rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 transition-colors"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? "Copied" : "Copy SQL"}</span>
+              </button>
+            </div>
           </div>
           <pre className="w-full h-64 p-3 font-mono text-xs rounded-lg border border-white/15 bg-[#0d0d0d] text-white overflow-auto whitespace-pre-wrap leading-relaxed">
             <code>{diffResult.alterSql}</code>

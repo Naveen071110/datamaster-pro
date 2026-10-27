@@ -69,16 +69,31 @@ export default function SnowflakeStageGeneratorPage() {
     }
   }
 
+  // Helper to quote Snowflake SQL identifiers defensively
+  const quoteIdent = (name: string, fallback: string) => {
+    const trimmed = (name || "").trim()
+    if (!trimmed) return fallback
+    return `"${trimmed.replace(/"/g, '""')}"`
+  }
+
   // Synthesize Snowflake DDL & COPY INTO commands
   const generatedSql = useMemo(() => {
+    const qDb = quoteIdent(databaseName, "RAW_DB")
+    const qSchema = quoteIdent(schemaName, "LANDING")
+    const qTable = quoteIdent(tableName, "STG_ORDERS")
+    const qStage = quoteIdent(stageName, "S3_RAW_DATA_STAGE")
+    const qPipe = quoteIdent(pipeName, "PIPE_AUTO_INGEST_ORDERS")
+    const qIntegration = storageIntegration ? quoteIdent(storageIntegration, "STORAGE_INT") : ""
+    const safeCloudUrl = (cloudUrl || "").trim().replace(/'/g, "''").replace(/;/g, "")
+
     let sql = `-- ==========================================================================\n`
     sql += `-- Snowflake Cloud Stage, File Format & COPY INTO Synthesizer\n`
-    sql += `-- Database: ${databaseName}.${schemaName}.${tableName}\n`
+    sql += `-- Database: ${databaseName.replace(/[\r\n]/g, "")}.${schemaName.replace(/[\r\n]/g, "")}.${tableName.replace(/[\r\n]/g, "")}\n`
     sql += `-- Cloud Provider: ${stageType.toUpperCase()} | Format: ${fileFormat}\n`
     sql += `-- ==========================================================================\n\n`
 
-    sql += `USE DATABASE ${databaseName};\n`
-    sql += `USE SCHEMA ${schemaName};\n\n`
+    sql += `USE DATABASE ${qDb};\n`
+    sql += `USE SCHEMA ${qSchema};\n\n`
 
     sql += `-- 1. Create File Format Definition\n`
     sql += `CREATE OR REPLACE FILE FORMAT FF_${fileFormat}_FORMAT\n`
@@ -102,14 +117,14 @@ export default function SnowflakeStageGeneratorPage() {
 
     sql += `-- 2. Create Named Stage\n`
     if (stageType === "internal") {
-      sql += `CREATE OR REPLACE STAGE ${stageName}\n`
+      sql += `CREATE OR REPLACE STAGE ${qStage}\n`
       sql += `  FILE_FORMAT = (FORMAT_NAME = 'FF_${fileFormat}_FORMAT')\n`
       sql += `  DIRECTORY = (ENABLE = TRUE);\n\n`
     } else {
-      sql += `CREATE OR REPLACE STAGE ${stageName}\n`
-      sql += `  URL = '${cloudUrl}'\n`
-      if (storageIntegration) {
-        sql += `  STORAGE_INTEGRATION = ${storageIntegration}\n`
+      sql += `CREATE OR REPLACE STAGE ${qStage}\n`
+      sql += `  URL = '${safeCloudUrl}'\n`
+      if (qIntegration) {
+        sql += `  STORAGE_INTEGRATION = ${qIntegration}\n`
       }
       sql += `  FILE_FORMAT = (FORMAT_NAME = 'FF_${fileFormat}_FORMAT')\n`
       sql += `  DIRECTORY = (ENABLE = TRUE);\n\n`
@@ -119,14 +134,14 @@ export default function SnowflakeStageGeneratorPage() {
 
     sql += `-- 3. Target Raw Table DDL\n`
     if (isSemiStructured) {
-      sql += `CREATE OR REPLACE TABLE ${tableName} (\n`
+      sql += `CREATE OR REPLACE TABLE ${qTable} (\n`
       sql += `  RAW_RECORD           VARIANT,\n`
       sql += `  METADATA_FILENAME    VARCHAR(500) DEFAULT METADATA$FILENAME,\n`
       sql += `  METADATA_ROW_NUMBER  NUMBER DEFAULT METADATA$FILE_ROW_NUMBER,\n`
       sql += `  LOADED_AT            TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()\n`
       sql += `);\n\n`
     } else {
-      sql += `CREATE OR REPLACE TABLE ${tableName} (\n`
+      sql += `CREATE OR REPLACE TABLE ${qTable} (\n`
       sql += `  ORDER_ID             NUMBER(38,0),\n`
       sql += `  CUSTOMER_ID          NUMBER(38,0),\n`
       sql += `  AMOUNT               NUMBER(12,2),\n`
@@ -138,14 +153,14 @@ export default function SnowflakeStageGeneratorPage() {
 
     sql += `-- 4. Ingestion: COPY INTO Statement\n`
     if (fileFormat === "PARQUET" || fileFormat === "JSON") {
-      sql += `COPY INTO ${tableName} (RAW_RECORD, METADATA_FILENAME, METADATA_ROW_NUMBER)\n`
+      sql += `COPY INTO ${qTable} (RAW_RECORD, METADATA_FILENAME, METADATA_ROW_NUMBER)\n`
       sql += `FROM (\n`
       sql += `  SELECT $1, METADATA$FILENAME, METADATA$FILE_ROW_NUMBER\n`
-      sql += `  FROM @${stageName}\n`
+      sql += `  FROM @${qStage}\n`
       sql += `)\n`
     } else {
-      sql += `COPY INTO ${tableName}\n`
-      sql += `FROM @${stageName}\n`
+      sql += `COPY INTO ${qTable}\n`
+      sql += `FROM @${qStage}\n`
     }
     sql += `FILE_FORMAT = (FORMAT_NAME = 'FF_${fileFormat}_FORMAT')\n`
     sql += `ON_ERROR = '${onError}'\n`
@@ -154,24 +169,24 @@ export default function SnowflakeStageGeneratorPage() {
 
     if (includeSnowpipe) {
       sql += `-- 5. Continuous Ingestion: Snowpipe Auto-Ingest Definition\n`
-      sql += `CREATE OR REPLACE PIPE ${pipeName}\n`
+      sql += `CREATE OR REPLACE PIPE ${qPipe}\n`
       sql += `  AUTO_INGEST = TRUE\n`
       sql += `AS\n`
       if (fileFormat === "PARQUET" || fileFormat === "JSON") {
-        sql += `COPY INTO ${tableName} (RAW_RECORD, METADATA_FILENAME, METADATA_ROW_NUMBER)\n`
+        sql += `COPY INTO ${qTable} (RAW_RECORD, METADATA_FILENAME, METADATA_ROW_NUMBER)\n`
         sql += `FROM (\n`
         sql += `  SELECT $1, METADATA$FILENAME, METADATA$FILE_ROW_NUMBER\n`
-        sql += `  FROM @${stageName}\n`
+        sql += `  FROM @${qStage}\n`
         sql += `)\n`
       } else {
-        sql += `COPY INTO ${tableName}\n`
-        sql += `FROM @${stageName}\n`
+        sql += `COPY INTO ${qTable}\n`
+        sql += `FROM @${qStage}\n`
       }
       sql += `FILE_FORMAT = (FORMAT_NAME = 'FF_${fileFormat}_FORMAT')\n`
       sql += `ON_ERROR = '${onError}';\n\n`
       sql += `-- Check Snowpipe Status\n`
-      sql += `SHOW PIPES LIKE '${pipeName}';\n`
-      sql += `SELECT SYSTEM$PIPE_STATUS('${pipeName}');\n`
+      sql += `SHOW PIPES LIKE '${pipeName.replace(/'/g, "''")}';\n`
+      sql += `SELECT SYSTEM$PIPE_STATUS('${pipeName.replace(/'/g, "''")}');\n`
     }
 
     return sql
@@ -205,7 +220,7 @@ export default function SnowflakeStageGeneratorPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `snowflake_ingest_${tableName.toLowerCase()}.sql`
+    a.download = `snowflake_ingest_${tableName.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "stage"}.sql`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -414,7 +429,21 @@ export default function SnowflakeStageGeneratorPage() {
             </CardHeader>
             <CardContent>
               <div className="border border-white/10 rounded-xl overflow-hidden bg-[#0a0a0a]">
-                <Editor height="480px" defaultLanguage="sql" theme="vs-dark" value={generatedSql} options={{ readOnly: true }} />
+                <Editor
+                  height="480px"
+                  defaultLanguage="sql"
+                  theme="vs-dark"
+                  value={generatedSql}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    renderLineHighlight: "none",
+                    folding: false,
+                    wordWrap: "on",
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
