@@ -15,7 +15,7 @@ export function RootErrorBoundary() {
     message = error.data?.message || "The requested view could not be rendered or was not found."
   } else if (error instanceof Error) {
     message = error.message
-    details = error.stack
+    details = import.meta.env.DEV ? error.stack : undefined
   } else if (typeof error === "string") {
     message = error
   }

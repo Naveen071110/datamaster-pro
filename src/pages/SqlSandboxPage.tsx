@@ -288,7 +288,14 @@ export default function SqlSandboxPage() {
                   <span>{activeTab.executionTimeMs}ms</span>
                 )}
                 {activeTab.result && !activeTab.isExecuting && (
-                  <span>{activeTab.result.rowCount} rows returned</span>
+                  <span className="flex items-center gap-1.5">
+                    <span>{activeTab.result.rowCount} rows returned</span>
+                    {activeTab.result.isTruncated && (
+                      <span className="text-amber-400 font-medium text-[10px] bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">
+                        (capped at 25,000 for stability)
+                      </span>
+                    )}
+                  </span>
                 )}
                 {activeTab.error && (
                   <span className="text-destructive">Error</span>

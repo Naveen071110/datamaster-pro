@@ -149,6 +149,7 @@ export interface QueryResult {
   rows: Record<string, unknown>[]
   rowCount: number
   affectedRows?: number
+  isTruncated?: boolean
 }
 
 export interface QueryHistoryEntry {

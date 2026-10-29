@@ -320,7 +320,9 @@ export async function getDatabase(): Promise<any> {
   return initPromise
 }
 
-export function executeQuery(db: any, sql: string): { columns: string[]; rows: Record<string, unknown>[]; rowCount: number; affectedRows?: number } {
+export const MAX_QUERY_ROWS = 25000
+
+export function executeQuery(db: any, sql: string): { columns: string[]; rows: Record<string, unknown>[]; rowCount: number; affectedRows?: number; isTruncated?: boolean } {
   // Strip leading SQL comments (single-line -- and multi-line /* */)
   const strippedSql = sql.replace(/^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*/g, "").trim()
   const upper = strippedSql.toUpperCase()
@@ -336,10 +338,15 @@ export function executeQuery(db: any, sql: string): { columns: string[]; rows: R
     try {
       const columns = stmt.getColumnNames()
       const rows: Record<string, unknown>[] = []
+      let isTruncated = false
       while (stmt.step()) {
+        if (rows.length >= MAX_QUERY_ROWS) {
+          isTruncated = true
+          break
+        }
         rows.push(stmt.getAsObject())
       }
-      return { columns, rows, rowCount: rows.length }
+      return { columns, rows, rowCount: rows.length, isTruncated }
     } finally {
       stmt.free()
     }
@@ -357,7 +364,8 @@ export function getSchema(db: any): { tableName: string; columns: { name: string
   if (tables.length > 0 && tables[0].values) {
     for (const row of tables[0].values) {
       const tableName = row[0] as string
-      const cols = db.exec(`PRAGMA table_info("${tableName}")`)
+      const escapedTableName = tableName.replace(/"/g, '""')
+      const cols = db.exec(`PRAGMA table_info("${escapedTableName}")`)
       const columns =
         cols[0]?.values.map((col: any) => ({
           name: col[1] as string,

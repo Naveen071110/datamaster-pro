@@ -119,8 +119,14 @@ export default function ContactPage() {
 
     setIsSubmitting(true)
 
-    // Simulate sending, trigger mailto fallback option, and navigate to Thank You page
+    // Construct mailto URI to ensure communication reaches maintainers
+    const mailSubject = encodeURIComponent(`[DataMaster Pro] ${values.subject}`)
+    const mailBody = encodeURIComponent(`From: ${values.name} (${values.email})\nCategory: ${values.category}\n\nMessage:\n${values.message}`)
+    const mailtoUrl = `mailto:naveenguru78@gmail.com?subject=${mailSubject}&body=${mailBody}`
+
+    // Trigger mail client fallback and navigate to Thank You page
     setTimeout(() => {
+      window.location.href = mailtoUrl
       setIsSubmitting(false)
       navigate("/thank-you?type=contact")
     }, 700)

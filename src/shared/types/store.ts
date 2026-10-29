@@ -7,6 +7,7 @@ export interface QueryTab {
     rows: Record<string, unknown>[]
     rowCount: number
     affectedRows?: number
+    isTruncated?: boolean
   }
   error?: string
   executionTimeMs?: number
