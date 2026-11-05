@@ -25,7 +25,9 @@ export default function QAPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null)
-  const { isBookmarked, addBookmark, removeBookmark } = useAppStore()
+  const isBookmarked = useAppStore((s) => s.isBookmarked)
+  const addBookmark = useAppStore((s) => s.addBookmark)
+  const removeBookmark = useAppStore((s) => s.removeBookmark)
 
   const debouncedSearch = useDebounce(searchQuery, 200)
 

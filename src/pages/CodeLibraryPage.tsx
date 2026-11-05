@@ -49,7 +49,9 @@ function SnippetDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const { isBookmarked, addBookmark, removeBookmark } = useAppStore()
+  const isBookmarked = useAppStore((s) => s.isBookmarked)
+  const addBookmark = useAppStore((s) => s.addBookmark)
+  const removeBookmark = useAppStore((s) => s.removeBookmark)
   const bookmarked = isBookmarked(snippet.id, "snippet")
 
   const handleBookmark = useCallback(() => {

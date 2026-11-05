@@ -20,6 +20,13 @@ export function ScrollVideo({ videoUrl, posterUrl }: ScrollVideoProps) {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
+    // Disable heavy 13MB video scrubbing on mobile or reduced-motion devices to conserve GPU and data
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768
+    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (isMobile || prefersReducedMotion) {
+      return
+    }
+
     const video = videoRef.current
     if (!video) return
 

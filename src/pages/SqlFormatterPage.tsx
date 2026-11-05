@@ -22,12 +22,20 @@ export default function SqlFormatterPage() {
   const formattedSql = useMemo(() => {
     if (!rawSql.trim()) return ""
 
-    // 1. Shield string literals
-    const strings: string[] = []
-    let sql = rawSql.replace(/'(?:''|[^'])*'/g, (match) => {
-      strings.push(match)
-      return `__STR_LITERAL_${strings.length - 1}__`
-    })
+    // 1. Shield comments and string literals to prevent corruption of internal text/commas
+    const tokens: string[] = []
+    const shield = (match: string) => {
+      tokens.push(match)
+      return `__SHIELDED_TOKEN_${tokens.length - 1}__`
+    }
+
+    let sql = rawSql
+      // Shield multi-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, shield)
+      // Shield single-line comments
+      .replace(/--[^\r\n]*/g, shield)
+      // Shield string literals
+      .replace(/'(?:''|[^'])*'/g, shield)
 
     // 2. Keyword capitalization
     SQL_KEYWORDS.forEach((kw) => {
@@ -70,9 +78,9 @@ export default function SqlFormatterPage() {
     sql = sql.replace(/\s+AND\s+/gi, `\n${spaces}AND `)
     sql = sql.replace(/\s+OR\s+/gi, `\n${spaces}OR `)
 
-    // 5. Restore string literals using a function replacer to shield '$' tokens
-    strings.forEach((str, idx) => {
-      sql = sql.replace(`__STR_LITERAL_${idx}__`, () => str)
+    // 5. Restore shielded comments and string literals safely
+    tokens.forEach((str, idx) => {
+      sql = sql.replace(`__SHIELDED_TOKEN_${idx}__`, () => str)
     })
 
     return sql

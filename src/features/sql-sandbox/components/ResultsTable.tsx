@@ -1,5 +1,7 @@
-import React from "react"
+import React, { useState, useMemo } from "react"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import { Button } from "@/shared/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface ResultsTableProps {
   columns: string[]
@@ -7,7 +9,17 @@ interface ResultsTableProps {
   maxHeight?: string
 }
 
+const PAGE_SIZE = 100
+
 export function ResultsTable({ columns, rows, maxHeight = "300px" }: ResultsTableProps) {
+  const [page, setPage] = useState(0)
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
+
+  const pagedRows = useMemo(() => {
+    const start = page * PAGE_SIZE
+    return rows.slice(start, start + PAGE_SIZE)
+  }, [rows, page])
+
   if (columns.length === 0 && rows.length === 0) {
     return (
       <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
@@ -32,9 +44,9 @@ export function ResultsTable({ columns, rows, maxHeight = "300px" }: ResultsTabl
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
+              {pagedRows.map((row, i) => (
                 <tr key={i} className="border-t border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="px-3 py-1.5 text-muted-foreground">{i + 1}</td>
+                  <td className="px-3 py-1.5 text-muted-foreground">{page * PAGE_SIZE + i + 1}</td>
                   {columns.map((col) => (
                     <td key={col} className="px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate">
                       {formatValue(row[col])}
@@ -46,9 +58,36 @@ export function ResultsTable({ columns, rows, maxHeight = "300px" }: ResultsTabl
           </table>
         </div>
       </ScrollArea>
-      <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border/50 bg-muted/20 flex justify-between">
-        <span>{rows.length} row{rows.length !== 1 ? "s" : ""}</span>
-        <span>{columns.length} column{columns.length !== 1 ? "s" : ""}</span>
+      <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border/50 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <span>Total: {rows.length.toLocaleString()} row{rows.length !== 1 ? "s" : ""}</span>
+          <span>({columns.length} columns)</span>
+        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">
+              Page {page + 1} of {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

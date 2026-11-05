@@ -79,7 +79,9 @@ function QuestionNode({ node, onAnswer }: { node: DecisionNode; onAnswer: (answe
 }
 
 function SolutionView({ solution }: { solution: SolutionNode }) {
-  const { isBookmarked, addBookmark, removeBookmark } = useAppStore()
+  const isBookmarked = useAppStore((s) => s.isBookmarked)
+  const addBookmark = useAppStore((s) => s.addBookmark)
+  const removeBookmark = useAppStore((s) => s.removeBookmark)
   const [copiedCode, setCopiedCode] = useState(false)
   const bookmarked = isBookmarked(solution.id, "troubleshooting")
 

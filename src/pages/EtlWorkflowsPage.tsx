@@ -147,29 +147,6 @@ export default function EtlWorkflowsPage() {
     setSimStep(0)
     setLogEntries([])
     setSelectedPresetId(id)
-
-    const preset = workflowPresets.find((p) => p.id === id)
-    if (!preset) return
-
-    const newNodes: Node[] = preset.nodes.map((n) => ({
-      id: n.id,
-      type: n.type,
-      position: n.position,
-      data: { label: n.label, ...n.config },
-    }))
-
-    const newEdges: Edge[] = preset.edges.map((e) => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-      label: e.label,
-      animated: false,
-      style: { stroke: "hsl(217.2, 32.6%, 40%)", strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "hsl(217.2, 32.6%, 40%)" },
-    }))
-
-    setNodes(newNodes)
-    setEdges(newEdges)
   }
 
   const simulate = useCallback(() => {

@@ -29,6 +29,7 @@ interface ColumnProfile {
 
 export default function DataProfilerPage() {
   const [csvContent, setCsvContent] = useState(SAMPLE_PROFILER_CSV)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const debouncedCsvContent = useDebounce(csvContent, 200)
 
   // Compute Data Profile
@@ -156,8 +157,16 @@ export default function DataProfilerPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File exceeds 10MB limit. Please upload a smaller sample for in-browser profiling.")
+      e.target.value = ""
+      return
+    }
+    setUploadError(null)
     const reader = new FileReader()
-    reader.onerror = () => {}
+    reader.onerror = () => {
+      setUploadError("Failed to read file from disk.")
+    }
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content) setCsvContent(content)
@@ -200,6 +209,11 @@ export default function DataProfilerPage() {
             <input id="csv-profiler-upload" type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
           </label>
         </div>
+        {uploadError && (
+          <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-mono">
+            {uploadError}
+          </div>
+        )}
         <textarea
           id="profiler-csv-input"
           aria-label="CSV Dataset Input"

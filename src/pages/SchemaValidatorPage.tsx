@@ -72,10 +72,28 @@ interface SchemaSpec {
 function validateSchema(schema: SchemaSpec, data: Record<string, unknown>[]): FieldValidation[] {
   if (data.length === 0) return []
 
+  // Ensure data rows are valid non-null objects
+  const objectRows = data.filter(
+    (row): row is Record<string, unknown> => typeof row === "object" && row !== null && !Array.isArray(row)
+  )
+
+  if (objectRows.length === 0) {
+    return [
+      {
+        field: "data",
+        expectedType: "array of objects",
+        actualType: "invalid records",
+        sampleValue: null,
+        passed: false,
+        error: "JSON data must contain an array of valid objects ({ key: value })",
+      },
+    ]
+  }
+
   const results: FieldValidation[] = []
 
   for (const [field, expectedType] of Object.entries(schema)) {
-    const values = data.map((row) => row[field]).filter((v) => v !== undefined)
+    const values = objectRows.map((row) => row[field]).filter((v) => v !== undefined)
     if (values.length === 0) {
       results.push({
         field,
@@ -91,14 +109,14 @@ function validateSchema(schema: SchemaSpec, data: Record<string, unknown>[]): Fi
   }
 
   // Check for extra fields in data
-  const dataFields = new Set(data.flatMap((row) => Object.keys(row)))
+  const dataFields = new Set(objectRows.flatMap((row) => Object.keys(row)))
   for (const field of dataFields) {
     if (!(field in schema)) {
       results.push({
         field,
         expectedType: "not specified",
-        actualType: inferType(data[0]?.[field]),
-        sampleValue: data[0]?.[field] ?? null,
+        actualType: inferType(objectRows[0]?.[field]),
+        sampleValue: objectRows[0]?.[field] ?? null,
         passed: true,
         error: "Extra field not in schema",
       })

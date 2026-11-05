@@ -19,17 +19,19 @@ export function useLocalStorage<T>(
 
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
-      const valueToStore = value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
-      try {
-        if (typeof window !== "undefined" && window.localStorage) {
-          window.localStorage.setItem(key, JSON.stringify(valueToStore))
+      setStoredValue((prev) => {
+        const next = value instanceof Function ? value(prev) : value
+        try {
+          if (typeof window !== "undefined" && window.localStorage) {
+            window.localStorage.setItem(key, JSON.stringify(next))
+          }
+        } catch (error) {
+          console.warn(`[useLocalStorage] Storage failed for key "${key}" (quota exceeded or storage blocked):`, error)
         }
-      } catch (error) {
-        console.warn(`[useLocalStorage] Storage failed for key "${key}" (quota exceeded or storage blocked):`, error)
-      }
+        return next
+      })
     },
-    [key, storedValue]
+    [key]
   )
 
   return [storedValue, setValue]

@@ -20,6 +20,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
 import { serializeToCsv } from "@/shared/utils/csv"
+import { useDebounce } from "@/shared/hooks/useDebounce"
 import Editor from "@monaco-editor/react"
 
 type DataSource = "local_generator" | "dummyjson" | "randomuser" | "countries"
@@ -159,6 +160,7 @@ export default function TestDataGeneratorPage() {
   const [dummyResource, setDummyResource] = useState<DummyResourceType>("products")
   const [randomUserSeed, setRandomUserSeed] = useState("datamaster")
   const [rowCount, setRowCount] = useState<number>(50)
+  const debouncedRowCount = useDebounce(rowCount, 300)
   const [searchTerm, setSearchTerm] = useState("")
   const [outputFormat, setOutputFormat] = useState<"table" | "json" | "sql" | "csv">("table")
   const [tableName, setTableName] = useState("synthetic_test_data")
@@ -173,11 +175,12 @@ export default function TestDataGeneratorPage() {
   // Fetch Remote API records when DummyJSON or RandomUser.me is active
   useEffect(() => {
     const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 6000)
     setApiError(null)
 
     if (dataSource === "dummyjson") {
       setLoadingRemote(true)
-      fetch(`https://dummyjson.com/${dummyResource}?limit=${Math.min(rowCount, 100)}`, { signal: controller.signal })
+      fetch(`https://dummyjson.com/${dummyResource}?limit=${Math.min(debouncedRowCount, 100)}`, { signal: controller.signal })
         .then((res) => {
           if (!res.ok) throw new Error(`DummyJSON API returned HTTP ${res.status}`)
           return res.json()
@@ -202,7 +205,7 @@ export default function TestDataGeneratorPage() {
         })
         .catch((err) => {
           if (err.name !== "AbortError") {
-            const fallback = generateDummyJsonFallback(dummyResource, Math.min(rowCount, 100))
+            const fallback = generateDummyJsonFallback(dummyResource, Math.min(debouncedRowCount, 100))
             setRemoteRecords(fallback)
             setTableName(`dummyjson_${dummyResource}_offline`)
             setApiError(`Remote provider notice: ${err instanceof Error ? err.message : "Network error"}. Instant local synthetic dataset generated.`)
@@ -211,7 +214,7 @@ export default function TestDataGeneratorPage() {
         })
     } else if (dataSource === "randomuser") {
       setLoadingRemote(true)
-      fetch(`https://randomuser.me/api/?results=${Math.min(rowCount, 100)}&seed=${randomUserSeed}`, { signal: controller.signal })
+      fetch(`https://randomuser.me/api/?results=${Math.min(debouncedRowCount, 100)}&seed=${randomUserSeed}`, { signal: controller.signal })
         .then((res) => {
           if (!res.ok) throw new Error(`RandomUser API returned HTTP ${res.status}`)
           return res.json()
@@ -239,7 +242,7 @@ export default function TestDataGeneratorPage() {
         })
         .catch((err) => {
           if (err.name !== "AbortError") {
-            const fallback = generateRandomUserFallback(Math.min(rowCount, 100))
+            const fallback = generateRandomUserFallback(Math.min(debouncedRowCount, 100))
             setRemoteRecords(fallback)
             setTableName("randomuser_demographics_offline")
             setApiError(`Remote provider notice: ${err instanceof Error ? err.message : "Network error"}. Instant local demographic dataset generated.`)
@@ -249,9 +252,10 @@ export default function TestDataGeneratorPage() {
     }
 
     return () => {
+      clearTimeout(timeoutId)
       controller.abort()
     }
-  }, [dataSource, dummyResource, randomUserSeed, rowCount, generationSeed])
+  }, [dataSource, dummyResource, randomUserSeed, debouncedRowCount, generationSeed])
 
   // Active records: local generator, remote API, or countries
   const activeRecords = useMemo(() => {

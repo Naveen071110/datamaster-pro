@@ -23,6 +23,7 @@ import { CookieBanner } from "@/shared/components/CookieBanner"
 import { useAnalyticsTracker } from "@/lib/analytics/tracker"
 
 const VIDEO_URL = "/videos/hero-scroll.mp4"
+const POSTER_URL = "/og-image.jpg"
 
 function useRevealObserver() {
   useEffect(() => {
@@ -32,6 +33,7 @@ function useRevealObserver() {
           if (entry.isIntersecting) {
             entry.target.classList.remove("translate-y-8", "opacity-0")
             entry.target.classList.add("translate-y-0", "opacity-100")
+            observer.unobserve(entry.target)
           }
         })
       },
@@ -79,7 +81,7 @@ export default function LandingPage() {
       <SEO />
       <CookieBanner />
       {/* Smooth Scroll-Scrubbed Video Background (Zero play/pause buttons) */}
-      <ScrollVideo videoUrl={VIDEO_URL} />
+      <ScrollVideo videoUrl={VIDEO_URL} posterUrl={POSTER_URL} />
 
       {/* Main Content Overlay */}
       <div className="relative z-10">

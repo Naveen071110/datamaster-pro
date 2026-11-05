@@ -24,6 +24,7 @@ export default function DdlGeneratorPage() {
   const [includeInsert, setIncludeInsert] = useState(true)
   const [includeDropTable, setIncludeDropTable] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   // Parse CSV/JSON and infer DDL
   const { ddlOutput, columnsCount, rowsCount, inferredSchema } = useMemo(() => {
@@ -146,8 +147,16 @@ export default function DdlGeneratorPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File exceeds 10MB limit. Please upload a smaller sample for in-browser DDL inference.")
+      e.target.value = ""
+      return
+    }
+    setUploadError(null)
     const reader = new FileReader()
-    reader.onerror = () => {}
+    reader.onerror = () => {
+      setUploadError("Failed to read file from disk.")
+    }
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content) {
@@ -216,6 +225,11 @@ export default function DdlGeneratorPage() {
           <p className="text-xs text-white/60">
             Paste raw CSV rows or a JSON array. Data never leaves your device.
           </p>
+          {uploadError && (
+            <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-mono">
+              {uploadError}
+            </div>
+          )}
           <textarea
             id="ddl-raw-input"
             aria-label="Raw CSV or JSON input"
